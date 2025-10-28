@@ -1,5 +1,3 @@
 pytest
-ragger[speculos,ledgerwallet]>=1.21.1
-ecdsa>=0.16.1,<0.17.0
-safe-pysha3>=1.0.0,<2.0.0
-tomli>=2.0.1
+ragger[speculos,ledgerwallet]>=1.40.3
+dataset @ file://../dataset
