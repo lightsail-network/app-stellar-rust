@@ -25,4 +25,5 @@ jobs:
       src_directory: application_client
       setup_directory: tests
       req_directory: tests
+      python_version: '3.13'
 

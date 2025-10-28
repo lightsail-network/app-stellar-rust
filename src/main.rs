@@ -1,6 +1,6 @@
 /*****************************************************************************
- *   Ledger App Boilerplate Rust.
- *   (c) 2023 Ledger SAS.
+ *   Ledger App Stellar Rust.
+ *   (c) 2025 overcat
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -18,79 +18,64 @@
 #![no_std]
 #![no_main]
 
-mod utils;
-mod app_ui {
-    pub mod address;
-    pub mod menu;
-    pub mod sign;
-}
-mod handlers {
-    pub mod get_public_key;
-    pub mod get_version;
-    pub mod sign_tx;
-}
-
+// Required for using String, Vec, format!...
+extern crate alloc;
+mod app_ui;
+mod bip32;
+mod context;
+mod crypto;
+mod handlers;
+mod icons;
 mod settings;
+mod sw;
+mod swap;
 
+use alloc::format;
 use app_ui::menu::ui_menu_main;
 use handlers::{
-    get_public_key::handler_get_public_key,
-    get_version::handler_get_version,
-    sign_tx::{handler_sign_tx, TxContext},
+    get_configuration::handler_get_configuration, get_public_key::handler_get_public_key,
+    sign_hash::handler_sign_hash, sign_message::handler_sign_message,
+    sign_soroban_auth::handler_sign_soroban_auth, sign_tx::handler_sign_tx,
 };
-use ledger_device_sdk::{
-    io::{ApduHeader, Comm, Reply, StatusWords},
-    nbgl::init_comm,
-};
+use ledger_device_sdk::io::{ApduHeader, Comm};
 
 ledger_device_sdk::set_panic!(ledger_device_sdk::exiting_panic);
 
-// Required for using String, Vec, format!...
-extern crate alloc;
+use crate::app_ui::blind_signing::ui_blind_signing;
+use crate::context::{AppContext, MAX_RAW_DATA_LEN, SWAP_MAX_RAW_DATA_LEN};
+use crate::sw::AppSW;
+use ledger_device_sdk::nbgl::{init_comm, NbglReviewStatus, PageIndex, StatusType};
+use ledger_device_sdk::testing::debug_print;
 
-use ledger_device_sdk::nbgl::{NbglReviewStatus, StatusType};
+// Application specific INS codes.
+const INS_GET_PK: u8 = 0x02;
+const INS_SIGN_TX: u8 = 0x04;
+const INS_GET_CONF: u8 = 0x06;
+const INS_SIGN_HASH: u8 = 0x08;
+const INS_SIGN_SOROBAN_AUTH: u8 = 0x0A;
+const INS_SIGN_MESSAGE: u8 = 0x0C;
 
-// P2 for last APDU to receive.
-const P2_SIGN_TX_LAST: u8 = 0x00;
-// P2 for more APDU to receive.
-const P2_SIGN_TX_MORE: u8 = 0x80;
-// P1 for first APDU number.
-const P1_SIGN_TX_START: u8 = 0x00;
-// P1 for maximum APDU number.
-const P1_SIGN_TX_MAX: u8 = 0x03;
+// P1 for first APDU.
+const P1_FIRST_APDU: u8 = 0x00;
+// P1 for non-first APDU.
+const P1_MORE_APDU: u8 = 0x80;
+// P2 for last APDU.
+const P2_LAST_APDU: u8 = 0x00;
+// P2 for more APDU.
+const P2_MORE_APDU: u8 = 0x80;
+// P2 for no need to ask user confirmation.
+const P2_NON_CONFIRM: u8 = 0x00;
+// P2 for ask user confirmation.
+const P2_CONFIRM: u8 = 0x01;
 
-// Application status words.
-#[repr(u16)]
-#[derive(Clone, Copy, PartialEq)]
-pub enum AppSW {
-    Deny = 0x6985,
-    WrongP1P2 = 0x6A86,
-    InsNotSupported = 0x6D00,
-    ClaNotSupported = 0x6E00,
-    TxDisplayFail = 0xB001,
-    AddrDisplayFail = 0xB002,
-    TxWrongLength = 0xB004,
-    TxParsingFail = 0xB005,
-    TxHashFail = 0xB006,
-    TxSignFail = 0xB008,
-    KeyDeriveFail = 0xB009,
-    VersionParsingFail = 0xB00A,
-    WrongApduLength = StatusWords::BadLen as u16,
-    Ok = 0x9000,
-}
-
-impl From<AppSW> for Reply {
-    fn from(sw: AppSW) -> Reply {
-        Reply(sw as u16)
-    }
-}
-
-/// Possible input commands received through APDUs.
+/// Possible input commands received through APDUs for Stellar.
 pub enum Instruction {
-    GetVersion,
-    GetAppName,
     GetPubkey { display: bool },
-    SignTx { chunk: u8, more: bool },
+    SignTx { first: bool, more: bool },
+    GetConfiguration,
+    SignHash,
+    SignSorobanAuth { first: bool, more: bool },
+    SignMessage { first: bool, more: bool },
 }
 
 impl TryFrom<ApduHeader> for Instruction {
@@ -108,32 +93,86 @@ impl TryFrom<ApduHeader> for Instruction {
     /// Note that CLA is not checked here. Instead the method [`Comm::set_expected_cla`] is used in
     /// [`sample_main`] to have this verification automatically performed by the SDK.
     fn try_from(value: ApduHeader) -> Result<Self, Self::Error> {
+        debug_print(
+            format!(
+                "APDU received: CLA={:02x} INS={:02x} P1={:02x} P2={:02x}\n",
+                value.cla, value.ins, value.p1, value.p2
+            )
+            .as_str(),
+        );
         match (value.ins, value.p1, value.p2) {
-            (3, 0, 0) => Ok(Instruction::GetVersion),
-            (4, 0, 0) => Ok(Instruction::GetAppName),
-            (5, 0 | 1, 0) => Ok(Instruction::GetPubkey {
-                display: value.p1 != 0,
+            // GET_PK instruction
+            (INS_GET_PK, 0, P2_NON_CONFIRM | P2_CONFIRM) => Ok(Instruction::GetPubkey {
+                display: value.p2 == P2_CONFIRM,
             }),
-            (6, P1_SIGN_TX_START, P2_SIGN_TX_MORE)
-            | (6, 1..=P1_SIGN_TX_MAX, P2_SIGN_TX_LAST | P2_SIGN_TX_MORE) => {
+            // SIGN_TX instruction
+            (INS_SIGN_TX, P1_FIRST_APDU | P1_MORE_APDU, P2_LAST_APDU | P2_MORE_APDU) => {
                 Ok(Instruction::SignTx {
-                    chunk: value.p1,
-                    more: value.p2 == P2_SIGN_TX_MORE,
+                    first: value.p1 == P1_FIRST_APDU,
+                    more: value.p2 == P2_MORE_APDU,
                 })
             }
-            (3..=6, _, _) => Err(AppSW::WrongP1P2),
+            // GET_CONF instruction
+            (INS_GET_CONF, 0, 0) => Ok(Instruction::GetConfiguration),
+            // SIGN_HASH instruction
+            (INS_SIGN_HASH, 0, 0) => Ok(Instruction::SignHash),
+            // SIGN_SOROBAN_AUTHORIZATION instruction
+            (INS_SIGN_SOROBAN_AUTH, P1_FIRST_APDU | P1_MORE_APDU, P2_LAST_APDU | P2_MORE_APDU) => {
+                Ok(Instruction::SignSorobanAuth {
+                    first: value.p1 == P1_FIRST_APDU,
+                    more: value.p2 == P2_MORE_APDU,
+                })
+            }
+            // SIGN_MESSAGE instruction
+            (INS_SIGN_MESSAGE, P1_FIRST_APDU | P1_MORE_APDU, P2_LAST_APDU | P2_MORE_APDU) => {
+                Ok(Instruction::SignMessage {
+                    first: value.p1 == P1_FIRST_APDU,
+                    more: value.p2 == P2_MORE_APDU,
+                })
+            }
+            // Invalid P1 or P2
+            (INS_GET_PK, _, _)
+            | (INS_SIGN_TX, _, _)
+            | (INS_GET_CONF, _, _)
+            | (INS_SIGN_HASH, _, _)
+            | (INS_SIGN_SOROBAN_AUTH, _, _)
+            | (INS_SIGN_MESSAGE, _, _) => Err(AppSW::WrongP1P2),
+            // Unknown instruction
             (_, _, _) => Err(AppSW::InsNotSupported),
         }
     }
 }
 
-fn show_status_and_home_if_needed(ins: &Instruction, tx_ctx: &mut TxContext, status: &AppSW) {
+fn show_status_and_home_if_needed(
+    ins: &Instruction,
+    app_ctx: &mut AppContext<MAX_RAW_DATA_LEN>,
+    home: &mut ledger_device_sdk::nbgl::NbglHomeAndSettings,
+    status: &AppSW,
+) {
+    debug_print("show_status_and_home_if_needed\n");
+    if status == &AppSW::BlindSigningModeNotEnabled {
+        if ui_blind_signing() {
+            home.set_start_page(PageIndex::Settings(0));
+            home.show_and_return();
+            home.set_start_page(PageIndex::Home);
+        } else {
+            home.show_and_return()
+        }
+    }
+
     let (show_status, status_type) = match (ins, status) {
         (Instruction::GetPubkey { display: true }, AppSW::Deny | AppSW::Ok) => {
             (true, StatusType::Address)
         }
-        (Instruction::SignTx { .. }, AppSW::Deny | AppSW::Ok) if tx_ctx.finished() => {
+        (Instruction::SignTx { .. }, AppSW::Deny | AppSW::Ok) if app_ctx.finished() => {
             (true, StatusType::Transaction)
+        }
+        (Instruction::SignHash, AppSW::Deny | AppSW::Ok) => (true, StatusType::Transaction),
+        (Instruction::SignSorobanAuth { .. }, AppSW::Deny | AppSW::Ok) if app_ctx.finished() => {
+            (true, StatusType::Transaction)
+        }
+        (Instruction::SignMessage { .. }, AppSW::Deny | AppSW::Ok) if app_ctx.finished() => {
+            (true, StatusType::Message)
         }
         (_, _) => (false, StatusType::Transaction),
     };
@@ -144,49 +183,62 @@ fn show_status_and_home_if_needed(ins: &Instruction, tx_ctx: &mut TxContext, sta
             .status_type(status_type)
             .show(success);
 
-        // call home.show_and_return() to show home and setting screen
-        tx_ctx.home.show_and_return();
+        home.show_and_return();
     }
 }
 
 #[no_mangle]
-extern "C" fn sample_main() {
-    // Create the communication manager, and configure it to accept only APDU from the 0xe0 class.
-    // If any APDU with a wrong class value is received, comm will respond automatically with
-    // BadCla status word.
-    let mut comm = Comm::new().set_expected_cla(0xe0);
-    init_comm(&mut comm);
+extern "C" fn sample_main(arg0: u32) {
+    if arg0 != 0 {
+        // Swap mode: use smaller buffer (1024 bytes)
+        let mut app_ctx: AppContext<SWAP_MAX_RAW_DATA_LEN> = AppContext::new();
+        swap::swap_main(arg0, &mut app_ctx);
+    } else {
+        // Normal mode: use larger buffer (1024 * 8 bytes)
+        let mut app_ctx: AppContext<MAX_RAW_DATA_LEN> = AppContext::new();
 
-    let mut tx_ctx = TxContext::new();
+        // Create the communication manager, and configure it to accept only APDU from the 0xe0 class.
+        // If any APDU with a wrong class value is received, comm will respond automatically with
+        // BadCla status word.
+        let mut comm = Comm::new().set_expected_cla(0xe0);
 
-    tx_ctx.home = ui_menu_main(&mut comm);
-    tx_ctx.home.show_and_return();
+        // Initialize reference to Comm instance for NBGL
+        // API calls.
+        init_comm(&mut comm);
+        let mut home = ui_menu_main();
+        home.show_and_return();
 
-    loop {
-        let ins: Instruction = comm.next_command();
+        loop {
+            let ins: Instruction = comm.next_command();
 
-        let _status = match handle_apdu(&mut comm, &ins, &mut tx_ctx) {
-            Ok(()) => {
-                comm.reply_ok();
-                AppSW::Ok
-            }
-            Err(sw) => {
-                comm.reply(sw);
-                sw
-            }
-        };
-        show_status_and_home_if_needed(&ins, &mut tx_ctx, &_status);
+            let status = match handle_apdu(&mut comm, &ins, &mut app_ctx) {
+                Ok(()) => {
+                    comm.reply_ok();
+                    AppSW::Ok
+                }
+                Err(sw) => {
+                    comm.reply(sw);
+                    sw
+                }
+            };
+            show_status_and_home_if_needed(&ins, &mut app_ctx, &mut home, &status);
+        }
     }
 }
 
-fn handle_apdu(comm: &mut Comm, ins: &Instruction, ctx: &mut TxContext) -> Result<(), AppSW> {
+fn handle_apdu(
+    comm: &mut Comm,
+    ins: &Instruction,
+    ctx: &mut AppContext<MAX_RAW_DATA_LEN>,
+) -> Result<(), AppSW> {
     match ins {
-        Instruction::GetAppName => {
-            comm.append(env!("CARGO_PKG_NAME").as_bytes());
-            Ok(())
-        }
-        Instruction::GetVersion => handler_get_version(comm),
         Instruction::GetPubkey { display } => handler_get_public_key(comm, *display),
-        Instruction::SignTx { chunk, more } => handler_sign_tx(comm, *chunk, *more, ctx),
+        Instruction::GetConfiguration => handler_get_configuration(comm),
+        Instruction::SignTx { first, more } => handler_sign_tx(comm, *first, *more, ctx),
+        Instruction::SignHash => handler_sign_hash(comm, ctx),
+        Instruction::SignSorobanAuth { first, more } => {
+            handler_sign_soroban_auth(comm, *first, *more, ctx)
+        }
+        Instruction::SignMessage { first, more } => handler_sign_message(comm, *first, *more, ctx),
     }
 }
