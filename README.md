@@ -1,10 +1,6 @@
-# Ledger Rust Boilerplate Application
+# Ledger Stellar Application
 
-![Rule enforcer](https://github.com/LedgerHQ/app-boilerplate-rust/actions/workflows/guidelines_enforcer.yml/badge.svg) ![Build and tests](https://github.com/LedgerHQ/app-boilerplate-rust/actions/workflows/build_and_functional_tests.yml/badge.svg)
-
-This is a boilerplate application written in Rust which can be forked to start a new project for the Ledger Nano X, S+, Stax and Flex devices.
-
-:warning: Nano S is not supported
+A Ledger hardware wallet application for Stellar. This application enables transaction signing for Stellar on Ledger Nano X, Nano S+, Nano Gen5, Stax and Flex devices. 
 
 * Implements standard features (display address, transaction signature...),
 * Has functional tests using [Ragger](https://github.com/LedgerHQ/ragger),
@@ -12,7 +8,8 @@ This is a boilerplate application written in Rust which can be forked to start a
 
 ### Links
 
-* 📚 [Developer's documentation](https://developers.ledger.com/)<br/>
+* 🌟 [Stellar's developer documentation](https://developers.stellar.org/)
+* 📚 [Developer's documentation](https://developers.ledger.com/)
 * 🗣️ [Ledger's Discord server](https://discord.gg/Ledger)
 
 ## Quick start guide
@@ -29,8 +26,8 @@ By using Ledger's own developer tools [Docker image](https://github.com/LedgerHQ
   * On macOS, install and launch [XQuartz](https://www.xquartz.org/) (make sure to go to XQuartz > Preferences > Security and check "Allow client connections").
   * On Windows, install and launch [VcXsrv](https://sourceforge.net/projects/vcxsrv/) (make sure to configure it to disable access control).
 * Install [VScode](https://code.visualstudio.com/download) and add [Ledger's extension](https://marketplace.visualstudio.com/items?itemName=LedgerHQ.ledger-dev-tools).
-* Open a terminal and clone `app-boilerplate-rust` with `git clone git@github.com:LedgerHQ/app-boilerplate-rust.git`.
-* Open the `app-boilerplate-rust` folder with VSCode.
+* Open a terminal and clone `app-stellar-rust` with `git clone git@github.com:LedgerHQ/app-stellar-rust.git`.
+* Open the `app-stellar-rust` folder with VSCode.
 * Use Ledger extension's sidebar menu or open the tasks menu with `ctrl + shift + b` (`command + shift + b` on a Mac) to conveniently execute actions :
   * **Build** the app for the device model of your choice with `Build`.
   * **Test** your binary on the [Speculos emulator](https://github.com/LedgerHQ/speculos) with `Run with emulator`.
@@ -70,15 +67,15 @@ The application's code will be available from inside the docker container, you c
 
 ### Building
 
-You can build the boilerplate with the following command executed in the root directory of the app.
+You can build the Stellar app with the following command executed in the root directory of the app.
 ```bash
 cargo ledger build nanox
 ```
-This command will build the app for the Nano X, but you can use any supported device (`nanox`, `nanosplus`, `stax`, `flex`)
+This command will build the app for the Nano X, but you can use any supported device (`nanox`, `nanosplus`, `stax`, `flex`, `apex_p`)
 
 ### Testing
 #### Ragger functional tests
-This boilerplate app comes with functional tests implemented with Ledger's [Ragger](https://github.com/LedgerHQ/ragger) test framework.
+This Stellar app comes with functional tests implemented with Ledger's [Ragger](https://github.com/LedgerHQ/ragger) test framework.
 
 * Install the tests requirements
 ```bash
@@ -87,18 +84,18 @@ pip install -r tests/requirements.txt
 * Run the functional tests :
 
 ```shell
-pytest tests/ --tb=short -v --device {nanosp | nanox | stax | flex}
+pytest tests/ --tb=short -v --device {nanosp | nanox | stax | flex | apex_p}
 ```
 #### Emulator
 You can also run the app directly on the [Speculos emulator](https://github.com/LedgerHQ/speculos) from the Docker container
 #### Nano S+ or X
 ```bash
-speculos --apdu-port 9999 --api-port 5001 --display headless --model nanosp target/nanosplus/release/app-boilerplate-rust
+speculos --apdu-port 9999 --api-port 5001 --display headless --model nanosp target/nanosplus/release/app-stellar-rust
 ```
 :warning: UI is displayed on `localhost:5001`
 #### Stax or Flex
 ```bash
-speculos --apdu-port 9999 --api-port 5001 --model stax target/stax/release/app-boilerplate-rust
+speculos --apdu-port 9999 --api-port 5001 --model stax target/stax/release/app-stellar-rust
 ```
 :warning: UI is displayed by your X server
 
