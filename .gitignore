@@ -6,9 +6,6 @@ app_nanox.json
 app_stax.json
 app_flex.json
 
-# Automatic generated NBGL glyphs
-glyphs/home_nano_nbgl.png
-
 # Temporary directory with snapshots taken during test runs
 tests/snapshots-tmp/
 
@@ -19,9 +16,15 @@ __pycache__/
 *.egg-info/
 .eggs/
 .python-version
+.venv
 
 # Related to the Ledger VSCode extension
 # Virtual env for sideload (macOS and Windows)
 ledger/
 # Build directory
 build/
+
+# Misc
+.envrc
+.DS_Store
+.idea/

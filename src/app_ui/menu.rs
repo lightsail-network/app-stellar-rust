@@ -1,6 +1,6 @@
 /*****************************************************************************
- *   Ledger App Boilerplate Rust.
- *   (c) 2023 Ledger SAS.
+ *   Ledger App Stellar Rust.
+ *   (c) 2025 overcat
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -15,31 +15,20 @@
  *  limitations under the License.
  *****************************************************************************/
 
-use include_gif::include_gif;
-use ledger_device_sdk::io::Comm;
-
+use crate::icons;
 use crate::settings::Settings;
-use ledger_device_sdk::nbgl::{NbglGlyph, NbglHomeAndSettings};
+use ledger_device_sdk::nbgl::NbglHomeAndSettings;
 
-pub fn ui_menu_main(_: &mut Comm) -> NbglHomeAndSettings {
-    // Load glyph from 64x64 4bpp gif file with include_gif macro. Creates an NBGL compatible glyph.
-    #[cfg(target_os = "apex_p")]
-    const FERRIS: NbglGlyph = NbglGlyph::from_include(include_gif!("glyphs/crab_48x48.png", NBGL));
-    #[cfg(any(target_os = "stax", target_os = "flex"))]
-    const FERRIS: NbglGlyph = NbglGlyph::from_include(include_gif!("glyphs/crab_64x64.gif", NBGL));
-    #[cfg(any(target_os = "nanosplus", target_os = "nanox"))]
-    const FERRIS: NbglGlyph =
-        NbglGlyph::from_include(include_gif!("glyphs/home_nano_nbgl.png", NBGL));
-
-    let settings_strings = [["Display Memo", "Allow display of transaction memo."]];
-    let mut settings: Settings = Default::default();
+pub fn ui_menu_main() -> NbglHomeAndSettings {
+    let settings_strings = Settings::get_all_settings_info();
+    let mut settings = Settings;
 
     // Display the home screen.
     NbglHomeAndSettings::new()
-        .glyph(&FERRIS)
+        .glyph(&icons::STELLAR)
         .settings(settings.get_mut(), &settings_strings)
         .infos(
-            "Boilerplate",
+            "Stellar",
             env!("CARGO_PKG_VERSION"),
             env!("CARGO_PKG_AUTHORS"),
         )

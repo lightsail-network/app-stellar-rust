@@ -26,3 +26,6 @@ jobs:
         with:
           builtin: clear,rare
           check_filenames: true
+          ignore_words_list: ser
+          exclude_file: stellarlib/tests/real_world_datasets/generic_txs.csv,stellarlib/tests/real_world_datasets/soroban_txs.csv
+
