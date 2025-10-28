@@ -20,7 +20,11 @@ use crate::sw::AppSW;
 use core::ops::Deref;
 use ledger_device_sdk::io::Comm;
 
+#[cfg(target_os = "nanox")]
+pub const MAX_RAW_DATA_LEN: usize = 1024 * 4;
+#[cfg(not(target_os = "nanox"))]
 pub const MAX_RAW_DATA_LEN: usize = 1024 * 8;
+
 pub const SWAP_MAX_RAW_DATA_LEN: usize = 1024;
 
 pub struct RawDataBuffer<const MAX: usize> {
