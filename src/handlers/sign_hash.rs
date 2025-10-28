@@ -45,11 +45,11 @@ pub fn handler_sign_hash<const MAX: usize>(
         return Err(AppSW::BlindSigningModeNotEnabled);
     }
 
-    if !ui_sign_hash(&hash)? {
+    if !ui_sign_hash(hash)? {
         return Err(AppSW::Deny);
     }
 
-    let signature = sign(&hash, &path)?;
+    let signature = sign(hash, &path)?;
     comm.append(&signature);
 
     Ok(())

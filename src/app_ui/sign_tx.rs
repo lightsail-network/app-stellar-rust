@@ -29,7 +29,7 @@ use stellarlib::{
 
 pub fn ui_sign_tx(raw_data: &[u8], signer: &[u8]) -> Result<bool, AppSW> {
     let config = Settings.to_format_config();
-    let signer = stellar_strkey::ed25519::PublicKey::from_payload(&signer)
+    let signer = stellar_strkey::ed25519::PublicKey::from_payload(signer)
         .expect("caller guarantees 32-byte Stellar public key")
         .to_string();
     let mut parser = Parser::new(raw_data);

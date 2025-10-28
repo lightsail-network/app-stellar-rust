@@ -51,12 +51,12 @@ impl Bip32Path {
         }
 
         let mut path = [0u32; ALLOWED_PATH_LEN];
-        for i in 0..ALLOWED_PATH_LEN {
+        for (i, element) in path.iter_mut().enumerate() {
             let start = i * BYTES_PER_SEGMENT;
             let end = start + BYTES_PER_SEGMENT;
             // We've already validated the length, so this conversion is safe
             let bytes: [u8; BYTES_PER_SEGMENT] = data[start..end].try_into().unwrap();
-            path[i] = u32::from_be_bytes(bytes);
+            *element = u32::from_be_bytes(bytes);
         }
 
         Ok(Bip32Path(path))

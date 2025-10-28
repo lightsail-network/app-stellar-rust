@@ -154,7 +154,7 @@ impl Settings {
         self.get_setting(SettingId::NestedAuthorization)
     }
 
-    pub fn to_format_config(&self) -> FormatConfig {
+    pub fn to_format_config(self) -> FormatConfig {
         FormatConfig {
             show_sequence_and_nonce: self.is_show_sequence_and_nonce_enabled(),
             show_preconditions: self.is_show_precondition_enabled(),
