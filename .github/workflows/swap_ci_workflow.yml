@@ -2,12 +2,12 @@ name: Swap functional tests
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - master
-      - main
-      - develop
-  pull_request:
+  # push:
+  #   branches:
+  #     - master
+  #     - main
+  #     - develop
+  # pull_request:
   
 jobs:
   job_functional_tests:
