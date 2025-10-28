@@ -24,5 +24,6 @@ jobs:
       - name: Check misspellings
         uses: codespell-project/actions-codespell@v2
         with:
-          builtin: clear,rare
+          builtin: clear,rare,ser
           check_filenames: true
+

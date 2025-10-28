@@ -1,5 +1,5 @@
 [package]
-name = "app-stellar"
+name = "stellar"
 version = "6.0.0"
 authors = ["overcat"]
 edition = "2021"
