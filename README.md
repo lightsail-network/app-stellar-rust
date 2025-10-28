@@ -73,6 +73,12 @@ cargo ledger build nanox
 ```
 This command will build the app for the Nano X, but you can use any supported device (`nanox`, `nanosplus`, `stax`, `flex`, `apex_p`)
 
+If you encounter issues like `fatal error: 'glyphs.h' file not found`, you may need to install some dependencies first. You can try the following command:
+
+```bash
+pip install -r requirements.txt
+```
+
 ### Testing
 #### Ragger functional tests
 This Stellar app comes with functional tests implemented with Ledger's [Ragger](https://github.com/LedgerHQ/ragger) test framework.
