@@ -1,36 +1,34 @@
 from stellar_sdk import (
-    Address,
     Account,
-    Memo,
-    Network,
-    RevokeSponsorship,
-    SignedPayloadSigner,
-    SignerKey,
-    TransactionBuilder,
-    TextMemo,
-    TransactionEnvelope,
-    Keypair,
+    Address,
     Asset,
-    MuxedAccount,
-    Signer,
-    LiquidityPoolAsset,
-    TrustLineEntryFlag,
     Claimant,
     ClaimPredicate,
+    FeeBumpTransactionEnvelope,
+    HashMemo,
+    IdMemo,
+    Keypair,
+    LiquidityPoolAsset,
     LiquidityPoolId,
+    Memo,
+    MuxedAccount,
+    Network,
+    ReturnHashMemo,
+    RevokeSponsorship,
+    SignedPayloadSigner,
+    Signer,
+    SignerKey,
+    TextMemo,
+    TimeBounds,
+    TransactionBuilder,
+    TransactionEnvelope,
+    TrustLineEntryFlag,
     TrustLineFlags,
     scval,
-    xdr as stellar_xdr,
-    IdMemo,
-    HashMemo,
-    ReturnHashMemo,
-    TimeBounds,
-    FeeBumpTransactionEnvelope,
 )
-from stellar_sdk.operation.revoke_sponsorship import (
-    RevokeSponsorshipType,
-    Signer as RevokeSponsorshipSigner,
-)
+from stellar_sdk import xdr as stellar_xdr
+from stellar_sdk.operation.revoke_sponsorship import RevokeSponsorshipType
+from stellar_sdk.operation.revoke_sponsorship import Signer as RevokeSponsorshipSigner
 
 __all__ = ["SignTxTestCases", "SignSorobanAuthorizationTestCases", "MNEMONIC"]
 
@@ -289,8 +287,10 @@ class SignTxTestCases:
             common_builder()
             .append_set_options_op(
                 inflation_dest=kp1.public_key,
-                clear_flags=8,
-                set_flags=1,
+                clear_flags=TrustLineFlags.AUTHORIZED_FLAG
+                | TrustLineFlags.TRUSTLINE_CLAWBACK_ENABLED_FLAG
+                | TrustLineFlags.AUTHORIZED_TO_MAINTAIN_LIABILITIES_FLAG,
+                set_flags=TrustLineFlags.AUTHORIZED_FLAG,
                 master_weight=255,
                 low_threshold=10,
                 med_threshold=20,
