@@ -502,6 +502,15 @@ pub fn format_operation(
     Ok(entries)
 }
 
+fn offer_action(offer_id: i64, amount: i64) -> String {
+    match (offer_id, amount) {
+        (0, _) => "create offer",
+        (_, 0) => "remove offer",
+        _ => "change offer",
+    }
+    .into()
+}
+
 /// Determines the intent string for a single operation
 ///
 /// # Arguments
@@ -519,8 +528,8 @@ pub fn get_operation_intent(operation_body: &OperationBody) -> Option<String> {
         OperationBody::PathPaymentStrictSend(op) => {
             Some(format!("send {}", format_asset_code(&op.send_asset)))
         }
-        OperationBody::ManageSellOffer(_) => Some("update offer".into()),
-        OperationBody::ManageBuyOffer(_) => Some("update offer".into()),
+        OperationBody::ManageSellOffer(op) => Some(offer_action(op.offer_id, op.amount)),
+        OperationBody::ManageBuyOffer(op) => Some(offer_action(op.offer_id, op.buy_amount)),
         OperationBody::CreatePassiveSellOffer(_) => Some("create offer".into()),
         OperationBody::SetOptions(_) => Some("set options".into()),
         OperationBody::ChangeTrust(_) => Some("change trust line".into()),
@@ -750,11 +759,12 @@ fn format_path_payment_strict_receive_op(op: &PathPaymentStrictReceiveOp) -> Vec
 fn format_manage_sell_offer_op(op: &ManageSellOfferOp) -> Result<Vec<DataEntry>, FormatError> {
     let mut entries = Vec::new();
     if op.offer_id != 0 {
+        let offer_id = format!("Offer ID: {}", op.offer_id);
         if op.amount == 0 {
-            entries.push(DataEntry::new("Remove Offer", op.offer_id.to_string()));
+            entries.push(DataEntry::new("Remove Offer", offer_id));
             return Ok(entries);
         }
-        entries.push(DataEntry::new("Change Offer", op.offer_id.to_string()));
+        entries.push(DataEntry::new("Change Offer", offer_id));
     }
 
     entries.push(DataEntry::new(
@@ -962,11 +972,12 @@ fn format_bump_sequence_op(op: &BumpSequenceOp) -> Vec<DataEntry> {
 fn format_manage_buy_offer_op(op: &ManageBuyOfferOp) -> Result<Vec<DataEntry>, FormatError> {
     let mut entries = Vec::new();
     if op.offer_id != 0 {
+        let offer_id = format!("Offer ID: {}", op.offer_id);
         if op.buy_amount == 0 {
-            entries.push(DataEntry::new("Remove Offer", op.offer_id.to_string()));
+            entries.push(DataEntry::new("Remove Offer", offer_id));
             return Ok(entries);
         }
-        entries.push(DataEntry::new("Change Offer", op.offer_id.to_string()));
+        entries.push(DataEntry::new("Change Offer", offer_id));
     }
 
     entries.push(DataEntry::new(
