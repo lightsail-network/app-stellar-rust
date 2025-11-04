@@ -129,23 +129,21 @@ fn extract_transaction(
 /// Validate the memo matches the extra ID
 fn validate_memo(
     envelope: &stellarlib::Transaction,
-    _tx_params: &CreateTxParams,
+    tx_params: &CreateTxParams,
 ) -> Result<(), &'static str> {
-    let _memo_text = match &envelope.memo {
+    let memo_text = match &envelope.memo {
         stellarlib::Memo::Text(memo) => memo.to_string(),
         _ => return Err("Swap transaction memo must be text"),
     };
 
-    // TODO: we need to re-enable extra ID check once the SDK supports it
+    let extra_id = utf8_from_prefix(
+        &tx_params.dest_address_extra_id,
+        tx_params.dest_address_extra_id_len,
+    )?;
 
-    // let extra_id = utf8_from_prefix(
-    //     &tx_params.dest_address_extra_id,
-    //     tx_params.dest_address_extra_id_len,
-    // )?;
-
-    // if memo_text != extra_id {
-    //     return Err("Memo does not match provided extra ID");
-    // }
+    if memo_text != extra_id {
+        return Err("Memo does not match provided extra ID");
+    }
 
     Ok(())
 }
