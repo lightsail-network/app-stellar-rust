@@ -922,10 +922,14 @@ fn format_change_trust_op(op: &ChangeTrustOp) -> Vec<DataEntry> {
     }
 
     if op.limit != 0 {
-        entries.push(DataEntry::new(
-            "Trust Limit",
-            format_native_amount(op.limit),
-        ));
+        if op.limit == i64::MAX {
+            entries.push(DataEntry::new("Trust Limit", "[unlimited]".to_string()));
+        } else {
+            entries.push(DataEntry::new(
+                "Trust Limit",
+                format_native_amount(op.limit),
+            ));
+        }
     }
 
     entries

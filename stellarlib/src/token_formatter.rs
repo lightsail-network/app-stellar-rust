@@ -5,6 +5,7 @@
 
 extern crate alloc;
 
+use crate::display::format_number_with_commas;
 use crate::formatter::DataEntry;
 use crate::parser::{InvokeContractArgs, ScAddress, ScVal, Uint256};
 use crate::serialize::scval_to_key_string;
@@ -108,8 +109,8 @@ impl<'a> TokenOperationBuilder<'a> {
 
     fn add_u32(mut self, label: &str, index: usize) -> Option<Self> {
         let value = extract_u32(&self.args[index])?;
-        self.entries
-            .push(DataEntry::new(label, format!("{}", value)));
+        let num = format_number_with_commas(value.to_string().as_str());
+        self.entries.push(DataEntry::new(label, num));
         Some(self)
     }
 
@@ -248,4 +249,3 @@ fn extract_u32(scval: &ScVal) -> Option<u32> {
         _ => None,
     }
 }
-
