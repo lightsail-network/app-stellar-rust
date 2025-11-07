@@ -58,7 +58,10 @@ fn format_token_transfer(
 
     let mut entries = Vec::new();
 
+    let from = extract_address_from_scval(&args_slice[0])?;
+    let to = extract_address_from_scval(&args_slice[1])?;
     let amount = extract_i128_from_scval(&args_slice[2])?;
+
     let formatted_amount = format_token_amount(amount, token_info.decimals);
     entries.push(DataEntry::new(
         "Transfer",
@@ -67,8 +70,8 @@ fn format_token_transfer(
             formatted_amount, token_info.symbol, args.contract_address
         ),
     ));
-    entries.push(DataEntry::new("From", scval_to_key_string(&args_slice[0])));
-    entries.push(DataEntry::new("To", scval_to_key_string(&args_slice[1])));
+    entries.push(DataEntry::new("From", from));
+    entries.push(DataEntry::new("To", to));
 
     Some(entries)
 }
@@ -85,7 +88,11 @@ fn format_token_approve(
 
     let mut entries = Vec::new();
 
+    let from = extract_address_from_scval(&args_slice[0])?;
+    let spender = extract_address_from_scval(&args_slice[1])?;
     let amount = extract_i128_from_scval(&args_slice[2])?;
+    let exp_ledger = extract_u32_from_scval(&args_slice[3])?;
+
     let formatted_amount = format_token_amount(amount, token_info.decimals);
     entries.push(DataEntry::new(
         "Approve",
@@ -95,17 +102,9 @@ fn format_token_approve(
         ),
     ));
 
-    entries.push(DataEntry::new("From", scval_to_key_string(&args_slice[0])));
-
-    entries.push(DataEntry::new(
-        "Spender",
-        scval_to_key_string(&args_slice[1]),
-    ));
-
-    entries.push(DataEntry::new(
-        "Exp Ledger",
-        scval_to_key_string(&args_slice[3]),
-    ));
+    entries.push(DataEntry::new("From", from));
+    entries.push(DataEntry::new("Spender", spender));
+    entries.push(DataEntry::new("Exp Ledger", format!("{}", exp_ledger)));
 
     Some(entries)
 }
@@ -122,7 +121,11 @@ fn format_token_transfer_from(
 
     let mut entries = Vec::new();
 
+    let spender = extract_address_from_scval(&args_slice[0])?;
+    let from = extract_address_from_scval(&args_slice[1])?;
+    let to = extract_address_from_scval(&args_slice[2])?;
     let amount = extract_i128_from_scval(&args_slice[3])?;
+
     let formatted_amount = format_token_amount(amount, token_info.decimals);
     entries.push(DataEntry::new(
         "Transfer",
@@ -131,12 +134,9 @@ fn format_token_transfer_from(
             formatted_amount, token_info.symbol, args.contract_address
         ),
     ));
-    entries.push(DataEntry::new("From", scval_to_key_string(&args_slice[1])));
-    entries.push(DataEntry::new("To", scval_to_key_string(&args_slice[2])));
-    entries.push(DataEntry::new(
-        "Spender",
-        scval_to_key_string(&args_slice[0]),
-    ));
+    entries.push(DataEntry::new("From", from));
+    entries.push(DataEntry::new("To", to));
+    entries.push(DataEntry::new("Spender", spender));
 
     Some(entries)
 }
@@ -150,7 +150,9 @@ fn format_token_mint(args: &InvokeContractArgs, token_info: &TokenInfo) -> Optio
 
     let mut entries = Vec::new();
 
+    let to = extract_address_from_scval(&args_slice[0])?;
     let amount = extract_i128_from_scval(&args_slice[1])?;
+
     let formatted_amount = format_token_amount(amount, token_info.decimals);
     entries.push(DataEntry::new(
         "Mint",
@@ -160,7 +162,7 @@ fn format_token_mint(args: &InvokeContractArgs, token_info: &TokenInfo) -> Optio
         ),
     ));
 
-    entries.push(DataEntry::new("To", scval_to_key_string(&args_slice[0])));
+    entries.push(DataEntry::new("To", to));
 
     Some(entries)
 }
@@ -174,7 +176,9 @@ fn format_token_burn(args: &InvokeContractArgs, token_info: &TokenInfo) -> Optio
 
     let mut entries = Vec::new();
 
+    let from = extract_address_from_scval(&args_slice[0])?;
     let amount = extract_i128_from_scval(&args_slice[1])?;
+
     let formatted_amount = format_token_amount(amount, token_info.decimals);
     entries.push(DataEntry::new(
         "Burn",
@@ -184,7 +188,7 @@ fn format_token_burn(args: &InvokeContractArgs, token_info: &TokenInfo) -> Optio
         ),
     ));
 
-    entries.push(DataEntry::new("From", scval_to_key_string(&args_slice[0])));
+    entries.push(DataEntry::new("From", from));
 
     Some(entries)
 }
@@ -201,7 +205,10 @@ fn format_token_burn_from(
 
     let mut entries = Vec::new();
 
+    let spender = extract_address_from_scval(&args_slice[0])?;
+    let from = extract_address_from_scval(&args_slice[1])?;
     let amount = extract_i128_from_scval(&args_slice[2])?;
+
     let formatted_amount = format_token_amount(amount, token_info.decimals);
     entries.push(DataEntry::new(
         "Burn",
@@ -211,12 +218,8 @@ fn format_token_burn_from(
         ),
     ));
 
-    entries.push(DataEntry::new("From", scval_to_key_string(&args_slice[1])));
-
-    entries.push(DataEntry::new(
-        "Spender",
-        scval_to_key_string(&args_slice[0]),
-    ));
+    entries.push(DataEntry::new("From", from));
+    entries.push(DataEntry::new("Spender", spender));
 
     Some(entries)
 }
@@ -232,9 +235,11 @@ fn format_token_clawback(
     }
 
     let mut entries = Vec::new();
-    let amount = extract_i128_from_scval(&args_slice[1])?;
-    let formatted_amount = format_token_amount(amount, token_info.decimals);
 
+    let from = extract_address_from_scval(&args_slice[0])?;
+    let amount = extract_i128_from_scval(&args_slice[1])?;
+
+    let formatted_amount = format_token_amount(amount, token_info.decimals);
     entries.push(DataEntry::new(
         "Clawback",
         format!(
@@ -242,7 +247,7 @@ fn format_token_clawback(
             formatted_amount, token_info.symbol, args.contract_address
         ),
     ));
-    entries.push(DataEntry::new("From", scval_to_key_string(&args_slice[0])));
+    entries.push(DataEntry::new("From", from));
 
     Some(entries)
 }
@@ -264,10 +269,34 @@ fn extract_i128_from_scval(scval: &ScVal) -> Option<i128> {
     }
 }
 
+/// Attempts to extract an Address from an ScVal
+///
+/// Returns Some(formatted_address) only if the ScVal is of Address type, None otherwise.
+/// This ensures strict type matching - if the expected type is Address but
+/// a different type is provided, we return None to fall back to default formatting.
+fn extract_address_from_scval(scval: &ScVal) -> Option<alloc::string::String> {
+    match scval {
+        ScVal::Address(_) => Some(scval_to_key_string(scval)),
+        _ => None,
+    }
+}
+
+/// Attempts to extract a u32 value from an ScVal
+///
+/// Returns Some(u32) only if the ScVal is of U32 type, None otherwise.
+/// This ensures strict type matching - if the expected type is u32 but
+/// a different type is provided, we return None to fall back to default formatting.
+fn extract_u32_from_scval(scval: &ScVal) -> Option<u32> {
+    match scval {
+        ScVal::U32(value) => Some(*value),
+        _ => None,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::parser::Int128Parts;
+    use crate::parser::{Int128Parts, PublicKey, ScAddress, Uint256};
 
     #[test]
     fn test_extract_i128_from_scval() {
@@ -286,5 +315,45 @@ mod tests {
         // Test U32 - should return None due to type mismatch
         let scval = ScVal::U32(100);
         assert_eq!(extract_i128_from_scval(&scval), None);
+    }
+
+    #[test]
+    fn test_extract_address_from_scval() {
+        // Test Address - should extract successfully
+        let bytes: [u8; 32] = [0u8; 32];
+        let public_key = PublicKey::PublicKeyTypeEd25519(Uint256(&bytes));
+        let address = ScAddress::ScAddressTypeAccount(public_key);
+        let scval = ScVal::Address(address);
+        assert!(extract_address_from_scval(&scval).is_some());
+
+        // Test U32 - should return None due to type mismatch
+        let scval = ScVal::U32(100);
+        assert_eq!(extract_address_from_scval(&scval), None);
+
+        // Test I128 - should return None due to type mismatch
+        let scval = ScVal::I128(Int128Parts { hi: 0, lo: 1000000 });
+        assert_eq!(extract_address_from_scval(&scval), None);
+    }
+
+    #[test]
+    fn test_extract_u32_from_scval() {
+        // Test U32 - should extract successfully
+        let scval = ScVal::U32(12345);
+        assert_eq!(extract_u32_from_scval(&scval), Some(12345));
+
+        // Test I128 - should return None due to type mismatch
+        let scval = ScVal::I128(Int128Parts { hi: 0, lo: 1000000 });
+        assert_eq!(extract_u32_from_scval(&scval), None);
+
+        // Test U64 - should return None due to type mismatch
+        let scval = ScVal::U64(12345);
+        assert_eq!(extract_u32_from_scval(&scval), None);
+
+        // Test Address - should return None due to type mismatch
+        let bytes: [u8; 32] = [0u8; 32];
+        let public_key = PublicKey::PublicKeyTypeEd25519(Uint256(&bytes));
+        let address = ScAddress::ScAddressTypeAccount(public_key);
+        let scval = ScVal::Address(address);
+        assert_eq!(extract_u32_from_scval(&scval), None);
     }
 }
