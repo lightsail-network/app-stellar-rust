@@ -40,11 +40,15 @@ pub fn ui_sign_tx(raw_data: &[u8], signer: &[u8]) -> Result<bool, AppSW> {
         format_transaction_signature_payload(&tx_signature_payload, &config, &signer)
             .map_err(|_| AppSW::DataFormattingFail)?;
 
-    let op_count = match &tx_signature_payload.tagged_transaction {
-        stellarlib::TaggedTransaction::EnvelopeTypeTx(tx) => tx.op_count,
+    let (op_count, tx_source) = match &tx_signature_payload.tagged_transaction {
+        stellarlib::TaggedTransaction::EnvelopeTypeTx(tx) => {
+            (tx.op_count, tx.source_account.to_string())
+        }
         stellarlib::TaggedTransaction::EnvelopeTypeTxFeeBump(fee_bump_tx) => {
             match &fee_bump_tx.inner_tx {
-                stellarlib::InnerTransaction::EnvelopeTypeTx(tx) => tx.op_count,
+                stellarlib::InnerTransaction::EnvelopeTypeTx(tx) => {
+                    (tx.op_count, tx.source_account.to_string())
+                }
             }
         }
     };
@@ -60,11 +64,11 @@ pub fn ui_sign_tx(raw_data: &[u8], signer: &[u8]) -> Result<bool, AppSW> {
         }
         let op = Operation::parse(&mut parser).map_err(|_| AppSW::DataParsingFail)?;
         let mut op_entries =
-            format_operation(&op, &config).map_err(|_| AppSW::DataFormattingFail)?;
+            format_operation(&op, &config, &tx_source).map_err(|_| AppSW::DataFormattingFail)?;
         data_entries.append(&mut op_entries);
 
         if op_count == 1 {
-            intent = get_operation_intent(&op.body);
+            intent = get_operation_intent(&op, &tx_source);
         }
     }
 

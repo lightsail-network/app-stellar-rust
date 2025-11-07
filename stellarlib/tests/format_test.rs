@@ -79,11 +79,15 @@ fn test_sign_tx_format_case(case_name: &str) {
     let mut entries = format_transaction_signature_payload(&tx_signature_payload, &config, signer)
         .unwrap_or_else(|_| panic!("Failed to format transaction for {}", case_name));
 
-    let op_count = match &tx_signature_payload.tagged_transaction {
-        stellarlib::TaggedTransaction::EnvelopeTypeTx(tx) => tx.op_count,
+    let (op_count, tx_source) = match &tx_signature_payload.tagged_transaction {
+        stellarlib::TaggedTransaction::EnvelopeTypeTx(tx) => {
+            (tx.op_count, tx.source_account.to_string())
+        }
         stellarlib::TaggedTransaction::EnvelopeTypeTxFeeBump(fee_bump_tx) => {
             match &fee_bump_tx.inner_tx {
-                stellarlib::InnerTransaction::EnvelopeTypeTx(tx) => tx.op_count,
+                stellarlib::InnerTransaction::EnvelopeTypeTx(tx) => {
+                    (tx.op_count, tx.source_account.to_string())
+                }
             }
         }
     };
@@ -97,7 +101,7 @@ fn test_sign_tx_format_case(case_name: &str) {
         }
         let operation = stellarlib::Operation::parse(&mut parser)
             .unwrap_or_else(|_| panic!("Failed to parse Operation for {}", case_name));
-        let op_entries = stellarlib::formatter::format_operation(&operation, &config)
+        let op_entries = stellarlib::formatter::format_operation(&operation, &config, &tx_source)
             .unwrap_or_else(|_| panic!("Failed to format Operation for {}", case_name));
         entries.extend(op_entries);
     }
@@ -181,6 +185,10 @@ fn test_sign_tx_formats() {
         "op_payment_with_muxed_destination",
         "op_path_payment_strict_receive",
         "op_path_payment_strict_receive_with_empty_path",
+        "op_path_payment_strict_receive_swap",
+        "op_path_payment_strict_receive_swap_with_source",
+        "op_path_payment_strict_receive_swap_with_muxed_source",
+        "op_path_payment_strict_receive_swap_with_op_source_not_equals_destination",
         "op_path_payment_strict_receive_with_muxed_destination",
         "op_manage_sell_offer_create",
         "op_manage_sell_offer_update",
@@ -216,6 +224,10 @@ fn test_sign_tx_formats() {
         "op_manage_buy_offer_delete",
         "op_path_payment_strict_send",
         "op_path_payment_strict_send_with_empty_path",
+        "op_path_payment_strict_send_swap",
+        "op_path_payment_strict_send_swap_with_source",
+        "op_path_payment_strict_send_swap_with_muxed_source",
+        "op_path_payment_strict_send_swap_with_op_source_not_equals_destination",
         "op_path_payment_strict_send_with_muxed_destination",
         "op_create_claimable_balance",
         "op_claim_claimable_balance",

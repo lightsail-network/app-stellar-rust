@@ -445,4 +445,3 @@ pub fn format_token_amount(amount: i128, decimals: u32) -> String {
     let decimal_str = format_decimal(amount, decimals);
     format_number_with_commas(&decimal_str)
 }
-

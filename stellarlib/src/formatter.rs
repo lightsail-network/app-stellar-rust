@@ -396,16 +396,25 @@ fn format_transaction(
 /// Formats transaction operations into data entries
 ///
 /// # Arguments
-/// * `operations` - The operations to format
+/// * `operation` - The operation to format
 /// * `config` - Configuration options for formatting
+/// * `tx_source` - The transaction source account address
 ///
 /// # Returns
 /// A result containing a vector of data entries representing the formatted transaction
 pub fn format_operation(
     operation: &Operation,
     config: &FormatConfig,
+    tx_source: &str,
 ) -> Result<Vec<DataEntry>, FormatError> {
     let mut entries = Vec::with_capacity(8);
+
+    // Determine the effective operation source (op source if present, otherwise tx source)
+    let op_source = operation
+        .source_account
+        .as_ref()
+        .map(|acc| acc.to_string())
+        .unwrap_or_else(|| tx_source.to_string());
 
     match &operation.body {
         OperationBody::CreateAccount(op) => {
@@ -415,7 +424,7 @@ pub fn format_operation(
             entries.extend(format_payment_op(op));
         }
         OperationBody::PathPaymentStrictReceive(op) => {
-            entries.extend(format_path_payment_strict_receive_op(op));
+            entries.extend(format_path_payment_strict_receive_op(op, &op_source));
         }
         OperationBody::ManageSellOffer(op) => {
             entries.extend(format_manage_sell_offer_op(op)?);
@@ -449,7 +458,7 @@ pub fn format_operation(
             entries.extend(format_manage_buy_offer_op(op)?);
         }
         OperationBody::PathPaymentStrictSend(op) => {
-            entries.extend(format_path_payment_strict_send_op(op));
+            entries.extend(format_path_payment_strict_send_op(op, &op_source));
         }
         OperationBody::CreateClaimableBalance(op) => {
             entries.extend(format_create_claimable_balance_op(op));
@@ -514,19 +523,37 @@ fn offer_action(offer_id: i64, amount: i64) -> String {
 /// Determines the intent string for a single operation
 ///
 /// # Arguments
-/// * `operation_body` - The operation body to analyze
+/// * `operation` - The operation to analyze
+/// * `tx_source` - The transaction source account address
 ///
 /// # Returns
 /// An optional intent string describing the operation's purpose
-pub fn get_operation_intent(operation_body: &OperationBody) -> Option<String> {
-    match operation_body {
+pub fn get_operation_intent(operation: &Operation, tx_source: &str) -> Option<String> {
+    // Determine the effective operation source (op source if present, otherwise tx source)
+    let op_source = operation
+        .source_account
+        .as_ref()
+        .map(|acc| acc.to_string())
+        .unwrap_or_else(|| tx_source.to_string());
+
+    match &operation.body {
         OperationBody::CreateAccount(_) => Some("send XLM".into()),
         OperationBody::Payment(op) => Some(format!("send {}", format_asset_code(&op.asset))),
         OperationBody::PathPaymentStrictReceive(op) => {
-            Some(format!("send {}", format_asset_code(&op.send_asset)))
+            let destination = op.destination.to_string();
+            if destination == op_source {
+                Some("swap".into())
+            } else {
+                Some(format!("send {}", format_asset_code(&op.send_asset)))
+            }
         }
         OperationBody::PathPaymentStrictSend(op) => {
-            Some(format!("send {}", format_asset_code(&op.send_asset)))
+            let destination = op.destination.to_string();
+            if destination == op_source {
+                Some("swap".into())
+            } else {
+                Some(format!("send {}", format_asset_code(&op.send_asset)))
+            }
         }
         OperationBody::ManageSellOffer(op) => Some(offer_action(op.offer_id, op.amount)),
         OperationBody::ManageBuyOffer(op) => Some(offer_action(op.offer_id, op.buy_amount)),
@@ -742,18 +769,39 @@ fn format_payment_op(op: &PaymentOp) -> Vec<DataEntry> {
     ]
 }
 
-fn format_path_payment_strict_receive_op(op: &PathPaymentStrictReceiveOp) -> Vec<DataEntry> {
-    vec![
-        DataEntry::new(
-            "Send Max",
-            format_amount_with_asset(op.send_max, &op.send_asset),
-        ),
-        DataEntry::new("To", op.destination.to_string()),
-        DataEntry::new(
-            "They Receive",
-            format_amount_with_asset(op.dest_amount, &op.dest_asset),
-        ),
-    ]
+fn format_path_payment_strict_receive_op(
+    op: &PathPaymentStrictReceiveOp,
+    op_source: &str,
+) -> Vec<DataEntry> {
+    let destination = op.destination.to_string();
+    let is_swap = destination == op_source;
+
+    if is_swap {
+        // This is a swap operation (sender and receiver are the same)
+        vec![
+            DataEntry::new(
+                "Send Max",
+                format_amount_with_asset(op.send_max, &op.send_asset),
+            ),
+            DataEntry::new(
+                "Receive",
+                format_amount_with_asset(op.dest_amount, &op.dest_asset),
+            ),
+        ]
+    } else {
+        // This is a payment operation
+        vec![
+            DataEntry::new(
+                "Send Max",
+                format_amount_with_asset(op.send_max, &op.send_asset),
+            ),
+            DataEntry::new("To", destination),
+            DataEntry::new(
+                "They Receive",
+                format_amount_with_asset(op.dest_amount, &op.dest_asset),
+            ),
+        ]
+    }
 }
 
 fn format_manage_sell_offer_op(op: &ManageSellOfferOp) -> Result<Vec<DataEntry>, FormatError> {
@@ -1004,18 +1052,39 @@ fn format_manage_buy_offer_op(op: &ManageBuyOfferOp) -> Result<Vec<DataEntry>, F
     Ok(entries)
 }
 
-fn format_path_payment_strict_send_op(op: &PathPaymentStrictSendOp) -> Vec<DataEntry> {
-    vec![
-        DataEntry::new(
-            "Send",
-            format_amount_with_asset(op.send_amount, &op.send_asset),
-        ),
-        DataEntry::new("To", op.destination.to_string()),
-        DataEntry::new(
-            "They Receive Min",
-            format_amount_with_asset(op.dest_min, &op.dest_asset),
-        ),
-    ]
+fn format_path_payment_strict_send_op(
+    op: &PathPaymentStrictSendOp,
+    op_source: &str,
+) -> Vec<DataEntry> {
+    let destination = op.destination.to_string();
+    let is_swap = destination == op_source;
+
+    if is_swap {
+        // This is a swap operation (sender and receiver are the same)
+        vec![
+            DataEntry::new(
+                "Send",
+                format_amount_with_asset(op.send_amount, &op.send_asset),
+            ),
+            DataEntry::new(
+                "Receive Min",
+                format_amount_with_asset(op.dest_min, &op.dest_asset),
+            ),
+        ]
+    } else {
+        // This is a payment operation
+        vec![
+            DataEntry::new(
+                "Send",
+                format_amount_with_asset(op.send_amount, &op.send_asset),
+            ),
+            DataEntry::new("To", destination),
+            DataEntry::new(
+                "They Receive Min",
+                format_amount_with_asset(op.dest_min, &op.dest_asset),
+            ),
+        ]
+    }
 }
 
 fn format_create_claimable_balance_op(op: &CreateClaimableBalanceOp) -> Vec<DataEntry> {

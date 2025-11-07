@@ -193,6 +193,115 @@ class SignTxTestCases:
         )
 
     @staticmethod
+    def op_path_payment_strict_receive_swap() -> TransactionEnvelope:
+        return (
+            common_builder()
+            .append_path_payment_strict_receive_op(
+                destination=kp0.public_key,
+                send_asset=Asset(
+                    "BTC", "GATEMHCCKCY67ZUCKTROYN24ZYT5GK4EQZ65JJLDHKHRUZI3EUEKMTCH"
+                ),
+                send_max="1",
+                dest_asset=Asset.native(),
+                dest_amount="123456789.334",
+                path=[
+                    Asset(
+                        "USDC",
+                        "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+                    ),
+                    Asset(
+                        "PANDA",
+                        "GDJVFDG5OCW5PYWHB64MGTHGFF57DRRJEDUEFDEL2SLNIOONHYJWHA3Z",
+                    ),
+                ],
+            )
+            .build()
+        )
+
+    @staticmethod
+    def op_path_payment_strict_receive_swap_with_source() -> TransactionEnvelope:
+        return (
+            common_builder()
+            .append_path_payment_strict_receive_op(
+                destination=kp1.public_key,
+                send_asset=Asset(
+                    "BTC", "GATEMHCCKCY67ZUCKTROYN24ZYT5GK4EQZ65JJLDHKHRUZI3EUEKMTCH"
+                ),
+                send_max="1",
+                dest_asset=Asset.native(),
+                dest_amount="123456789.334",
+                path=[
+                    Asset(
+                        "USDC",
+                        "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+                    ),
+                    Asset(
+                        "PANDA",
+                        "GDJVFDG5OCW5PYWHB64MGTHGFF57DRRJEDUEFDEL2SLNIOONHYJWHA3Z",
+                    ),
+                ],
+                source=kp1.public_key,
+            )
+            .build()
+        )
+
+    @staticmethod
+    def op_path_payment_strict_receive_swap_with_muxed_source() -> TransactionEnvelope:
+        return (
+            common_builder()
+            .append_path_payment_strict_receive_op(
+                destination=MuxedAccount(kp1.public_key, 12345),
+                send_asset=Asset(
+                    "BTC", "GATEMHCCKCY67ZUCKTROYN24ZYT5GK4EQZ65JJLDHKHRUZI3EUEKMTCH"
+                ),
+                send_max="1",
+                dest_asset=Asset.native(),
+                dest_amount="123456789.334",
+                path=[
+                    Asset(
+                        "USDC",
+                        "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+                    ),
+                    Asset(
+                        "PANDA",
+                        "GDJVFDG5OCW5PYWHB64MGTHGFF57DRRJEDUEFDEL2SLNIOONHYJWHA3Z",
+                    ),
+                ],
+                source=MuxedAccount(kp1.public_key, 12345),
+            )
+            .build()
+        )
+
+    @staticmethod
+    def op_path_payment_strict_receive_swap_with_op_source_not_equals_destination() -> (
+        TransactionEnvelope
+    ):
+        return (
+            common_builder()
+            .append_path_payment_strict_receive_op(
+                destination=kp1.public_key,
+                send_asset=Asset(
+                    "BTC", "GATEMHCCKCY67ZUCKTROYN24ZYT5GK4EQZ65JJLDHKHRUZI3EUEKMTCH"
+                ),
+                send_max="1",
+                dest_asset=Asset.native(),
+                dest_amount="123456789.334",
+                path=[
+                    Asset(
+                        "USDC",
+                        "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+                    ),
+                    Asset(
+                        "PANDA",
+                        "GDJVFDG5OCW5PYWHB64MGTHGFF57DRRJEDUEFDEL2SLNIOONHYJWHA3Z",
+                    ),
+                ],
+                source=kp2.public_key,
+            )
+            .build()
+        )
+
+    @staticmethod
     def op_path_payment_strict_receive_with_muxed_destination() -> TransactionEnvelope:
         muxed_account = MuxedAccount(account_id=kp1.public_key, account_muxed_id=10000)
         return (
@@ -680,6 +789,115 @@ class SignTxTestCases:
                 dest_asset=Asset.native(),
                 dest_min="123456789.987",
                 path=[],
+            )
+            .build()
+        )
+
+    @staticmethod
+    def op_path_payment_strict_send_swap() -> TransactionEnvelope:
+        return (
+            common_builder()
+            .append_path_payment_strict_send_op(
+                destination=kp0.public_key,
+                send_asset=Asset(
+                    "BTC", "GATEMHCCKCY67ZUCKTROYN24ZYT5GK4EQZ65JJLDHKHRUZI3EUEKMTCH"
+                ),
+                send_amount="0.985",
+                dest_asset=Asset.native(),
+                dest_min="123456789.987",
+                path=[
+                    Asset(
+                        "USDC",
+                        "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+                    ),
+                    Asset(
+                        "PANDA",
+                        "GDJVFDG5OCW5PYWHB64MGTHGFF57DRRJEDUEFDEL2SLNIOONHYJWHA3Z",
+                    ),
+                ],
+            )
+            .build()
+        )
+
+    @staticmethod
+    def op_path_payment_strict_send_swap_with_source() -> TransactionEnvelope:
+        return (
+            common_builder()
+            .append_path_payment_strict_send_op(
+                destination=kp1.public_key,
+                send_asset=Asset(
+                    "BTC", "GATEMHCCKCY67ZUCKTROYN24ZYT5GK4EQZ65JJLDHKHRUZI3EUEKMTCH"
+                ),
+                send_amount="0.985",
+                dest_asset=Asset.native(),
+                dest_min="123456789.987",
+                path=[
+                    Asset(
+                        "USDC",
+                        "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+                    ),
+                    Asset(
+                        "PANDA",
+                        "GDJVFDG5OCW5PYWHB64MGTHGFF57DRRJEDUEFDEL2SLNIOONHYJWHA3Z",
+                    ),
+                ],
+                source=kp1.public_key,
+            )
+            .build()
+        )
+
+    @staticmethod
+    def op_path_payment_strict_send_swap_with_muxed_source() -> TransactionEnvelope:
+        return (
+            common_builder()
+            .append_path_payment_strict_send_op(
+                destination=MuxedAccount(kp1.public_key, 12345),
+                send_asset=Asset(
+                    "BTC", "GATEMHCCKCY67ZUCKTROYN24ZYT5GK4EQZ65JJLDHKHRUZI3EUEKMTCH"
+                ),
+                send_amount="0.985",
+                dest_asset=Asset.native(),
+                dest_min="123456789.987",
+                path=[
+                    Asset(
+                        "USDC",
+                        "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+                    ),
+                    Asset(
+                        "PANDA",
+                        "GDJVFDG5OCW5PYWHB64MGTHGFF57DRRJEDUEFDEL2SLNIOONHYJWHA3Z",
+                    ),
+                ],
+                source=MuxedAccount(kp1.public_key, 12345),
+            )
+            .build()
+        )
+
+    @staticmethod
+    def op_path_payment_strict_send_swap_with_op_source_not_equals_destination() -> (
+        TransactionEnvelope
+    ):
+        return (
+            common_builder()
+            .append_path_payment_strict_send_op(
+                destination=kp1.public_key,
+                send_asset=Asset(
+                    "BTC", "GATEMHCCKCY67ZUCKTROYN24ZYT5GK4EQZ65JJLDHKHRUZI3EUEKMTCH"
+                ),
+                send_amount="0.985",
+                dest_asset=Asset.native(),
+                dest_min="123456789.987",
+                path=[
+                    Asset(
+                        "USDC",
+                        "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+                    ),
+                    Asset(
+                        "PANDA",
+                        "GDJVFDG5OCW5PYWHB64MGTHGFF57DRRJEDUEFDEL2SLNIOONHYJWHA3Z",
+                    ),
+                ],
+                source=kp2.public_key,
             )
             .build()
         )
