@@ -1239,6 +1239,12 @@ fn format_create_contract_args_v2(args: &CreateContractArgsV2) -> Vec<DataEntry>
 }
 
 fn format_invoke_contract_args(args: &InvokeContractArgs) -> Vec<DataEntry> {
+    // Try to format as a known token contract call first
+    if let Some(entries) = crate::token_formatter::try_format_token_contract_call(args) {
+        return entries;
+    }
+
+    // Default formatting for unknown contracts
     let mut entries = Vec::new();
     entries.push(DataEntry::new(
         "Contract ID",
