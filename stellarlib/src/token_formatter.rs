@@ -33,12 +33,10 @@ pub fn try_format_token_contract_call(args: &InvokeContractArgs) -> Option<Vec<D
 
     // Format based on token function type
     match args.function_name.to_string().as_str() {
-        "transfer" => format_token_transfer(args, token_info),
         "approve" => format_token_approve(args, token_info),
+        "transfer" => format_token_transfer(args, token_info),
         "transfer_from" => format_token_transfer_from(args, token_info),
-        "mint" => format_token_mint(args, token_info),
         "burn" => format_token_burn(args, token_info),
-        "clawback" => format_token_clawback(args, token_info),
         "burn_from" => format_token_burn_from(args, token_info),
         _ => None, // Unknown function, use default formatting
     }
@@ -169,18 +167,6 @@ fn format_token_transfer_from(
     )
 }
 
-/// Formats a token mint call: mint(to: Address, amount: i128)
-fn format_token_mint(args: &InvokeContractArgs, token_info: &TokenInfo) -> Option<Vec<DataEntry>> {
-    validate_args!(args, 2);
-
-    Some(
-        TokenOperationBuilder::new(args.args.as_slice())
-            .add_operation("Mint", 1, token_info, &args.contract_address)?
-            .add_address("To", 0)?
-            .build(),
-    )
-}
-
 /// Formats a token burn call: burn(from: Address, amount: i128)
 fn format_token_burn(args: &InvokeContractArgs, token_info: &TokenInfo) -> Option<Vec<DataEntry>> {
     validate_args!(args, 2);
@@ -205,21 +191,6 @@ fn format_token_burn_from(
             .add_operation("Burn", 2, token_info, &args.contract_address)?
             .add_address("From", 1)?
             .add_address("Spender", 0)?
-            .build(),
-    )
-}
-
-/// Formats a token clawback call: clawback(from: Address, amount: i128)
-fn format_token_clawback(
-    args: &InvokeContractArgs,
-    token_info: &TokenInfo,
-) -> Option<Vec<DataEntry>> {
-    validate_args!(args, 2);
-
-    Some(
-        TokenOperationBuilder::new(args.args.as_slice())
-            .add_operation("Clawback", 1, token_info, &args.contract_address)?
-            .add_address("From", 0)?
             .build(),
     )
 }
