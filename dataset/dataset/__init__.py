@@ -423,6 +423,19 @@ class SignTxTestCases:
         )
 
     @staticmethod
+    def op_change_trust_add_trust_line_with_unlimited_limit() -> TransactionEnvelope:
+        return (
+            common_builder()
+            .append_change_trust_op(
+                asset=Asset(
+                    "USDC", "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+                ),
+                limit="922337203685.4775807",
+            )
+            .build()
+        )
+
+    @staticmethod
     def op_change_trust_remove_trust_line() -> TransactionEnvelope:
         return (
             common_builder()
@@ -1689,6 +1702,54 @@ class SignTxTestCases:
         # print(f"XDR:\n{tx.to_xdr()}")
         raw = "AAAAAgAAAADpM4i7/S+9EYBt0L1ZzqkHnnzHDOex4VTxFM3+TkZuzQABNCsDEd5JAAAAAwAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAGAAAAAAAAAABre/OWa7lKWj3YGHUlMJSW3Vln6QpamX0me8p5WR35JYAAAAIdHJhbnNmZXIAAAADAAAAEgAAAAAAAAAA6TOIu/0vvRGAbdC9Wc6pB558xwznseFU8RTN/k5Gbs0AAAASAAAAAAAAAADZOp12TM8qDZmtWXuf1UnBrNdnabq8NBn0Z2D8yJM88wAAAAoAAAAAAAAAAAAAAAAAEsSwAAAAAQAAAAAAAAAAAAAAAa3vzlmu5Slo92Bh1JTCUlt1ZZ+kKWpl9JnvKeVkd+SWAAAACHRyYW5zZmVyAAAAAwAAABIAAAAAAAAAAOkziLv9L70RgG3QvVnOqQeefMcM57HhVPEUzf5ORm7NAAAAEgAAAAAAAAAA2TqddkzPKg2ZrVl7n9VJwazXZ2m6vDQZ9Gdg/MiTPPMAAAAKAAAAAAAAAAAAAAAAABLEsAAAAAAAAAABAAAAAAAAAAEAAAAGAAAAAa3vzlmu5Slo92Bh1JTCUlt1ZZ+kKWpl9JnvKeVkd+SWAAAAFAAAAAEAAAACAAAAAQAAAADZOp12TM8qDZmtWXuf1UnBrNdnabq8NBn0Z2D8yJM88wAAAAFVU0RDAAAAADuZETgO/piLoKiQDrHP5E82b32+lGvtB3JA9/Yk3xXFAAAAAQAAAADpM4i7/S+9EYBt0L1ZzqkHnnzHDOex4VTxFM3+TkZuzQAAAAFVU0RDAAAAADuZETgO/piLoKiQDrHP5E82b32+lGvtB3JA9/Yk3xXFAC/zlgAAAsQAAADoAAAAAAABMjcAAAAA"
         return TransactionEnvelope.from_xdr(raw, Network.PUBLIC_NETWORK_PASSPHRASE)
+
+    @staticmethod
+    def op_invoke_host_function_transfer_from_usdc() -> TransactionEnvelope:
+        return (
+            common_builder()
+            .append_invoke_contract_function_op(
+                contract_id="CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75",
+                function_name="transfer_from",
+                parameters=[
+                    scval.to_address(kp0.public_key),  # spender
+                    scval.to_address(kp1.public_key),  # from
+                    scval.to_address(kp2.public_key),  # to
+                    scval.to_int128(100000000 * 10**7),  # amount
+                ],
+            )
+            .build()
+        )
+
+    @staticmethod
+    def op_invoke_host_function_burn_usdc() -> TransactionEnvelope:
+        return (
+            common_builder()
+            .append_invoke_contract_function_op(
+                contract_id="CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75",
+                function_name="burn",
+                parameters=[
+                    scval.to_address(kp0.public_key),  # from
+                    scval.to_int128(100000000 * 10**7),  # amount
+                ],
+            )
+            .build()
+        )
+
+    @staticmethod
+    def op_invoke_host_function_burn_from_usdc() -> TransactionEnvelope:
+        return (
+            common_builder()
+            .append_invoke_contract_function_op(
+                contract_id="CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75",
+                function_name="burn_from",
+                parameters=[
+                    scval.to_address(kp0.public_key),  # spender
+                    scval.to_address(kp1.public_key),  # from
+                    scval.to_int128(100000000 * 10**7),  # amount
+                ],
+            )
+            .build()
+        )
 
     @staticmethod
     def op_invoke_host_function_with_auth() -> TransactionEnvelope:
