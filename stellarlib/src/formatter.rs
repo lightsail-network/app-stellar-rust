@@ -934,14 +934,20 @@ fn format_change_trust_op(op: &ChangeTrustOp) -> Vec<DataEntry> {
 
     match &op.line {
         ChangeTrustAsset::Native => entries.push(DataEntry::new(action, "XLM".to_string())),
-        ChangeTrustAsset::CreditAlphanum4(alpha_num4) => entries.push(DataEntry::new(
-            action,
-            format_asset_with_issuer!(alpha_num4),
-        )),
-        ChangeTrustAsset::CreditAlphanum12(alpha_num12) => entries.push(DataEntry::new(
-            action,
-            format_asset_with_issuer!(alpha_num12),
-        )),
+        ChangeTrustAsset::CreditAlphanum4(alpha_num4) => {
+            entries.push(DataEntry::new(action, alpha_num4.asset_code.to_string()));
+            entries.push(DataEntry::new(
+                "Asset Issuer",
+                alpha_num4.issuer.to_string(),
+            ));
+        }
+        ChangeTrustAsset::CreditAlphanum12(alpha_num12) => {
+            entries.push(DataEntry::new(action, alpha_num12.asset_code.to_string()));
+            entries.push(DataEntry::new(
+                "Asset Issuer",
+                alpha_num12.issuer.to_string(),
+            ));
+        }
         ChangeTrustAsset::PoolShare(liquidity_pool_parameters) => {
             entries.push(DataEntry::new(action, "Liquidity Pool Asset".to_string()));
             match liquidity_pool_parameters {
