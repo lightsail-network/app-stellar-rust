@@ -130,7 +130,6 @@ pub fn format_transaction_signature_payload(
                 "The following details are for the inner transaction".to_string(),
             ));
 
-            // TODO: allow config to control whether to show inner transaction details?
             match &tx.inner_tx {
                 InnerTransaction::EnvelopeTypeTx(tx) => {
                     let tx_entries = format_transaction(tx, config, signer_address, true)?;
