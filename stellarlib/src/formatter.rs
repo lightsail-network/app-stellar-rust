@@ -1377,7 +1377,7 @@ fn format_soroban_authorized_invocation(
         for (i, sub_invocation) in invocation.sub_invocations.iter().enumerate() {
             let nested_index = match parent_index {
                 None => (i + 1).to_string(),
-                Some(parent) => format!("{}.{}", parent, i + 1),
+                Some(parent) => format!("{}-{}", parent, i + 1),
             };
 
             entries.push(DataEntry::new("Nested Authorization", nested_index.clone()));
@@ -1423,7 +1423,7 @@ fn format_invoke_host_function_op(
                     for (j, sub_invocation) in
                         auth.root_invocation.sub_invocations.iter().enumerate()
                     {
-                        let index = format!("{}.{}", auth_index, j + 1);
+                        let index = format!("{}-{}", auth_index, j + 1);
                         entries.push(DataEntry::new("Nested Authorization", index.clone()));
                         entries.extend(format_soroban_authorized_invocation(
                             sub_invocation,
