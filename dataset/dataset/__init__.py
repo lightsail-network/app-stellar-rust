@@ -2986,6 +2986,19 @@ class SignTxTestCases:
             .build()
         )
 
+    # Used to test the case where `ENABLE_TRANSACTION_SOURCE` is not enabled.
+    @staticmethod
+    def tx_with_different_source() -> TransactionEnvelope:
+        return (
+            common_builder(source=kp1)
+            .append_payment_op(
+                destination=kp1.public_key,
+                asset=Asset.native(),
+                amount="1",
+            )
+            .build()
+        )
+
     @staticmethod
     def tx_network_public() -> TransactionEnvelope:
         return (

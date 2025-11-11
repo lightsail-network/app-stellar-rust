@@ -204,6 +204,7 @@ fn test_sign_tx() {
         "tx_multi_operations",
         "tx_custom_base_fee",
         "tx_with_muxed_source",
+        "tx_with_different_source",
         "tx_network_public",
         "tx_network_testnet",
         "tx_network_custom",
