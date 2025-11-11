@@ -1,3 +1,5 @@
+import os
+
 import pytest
 from application_client.stellar_command_sender import Errors, StellarCommandSender
 from ragger.error import ExceptionRAPDU
@@ -14,7 +16,7 @@ from dataset import MNEMONIC, SignTxTestCases
 
 
 @pytest.mark.parametrize("test_name", get_testcases_names(SignTxTestCases))
-def test_sign_tx(backend, scenario_navigator, device, navigator, test_name):
+def test_sign_tx(backend, scenario_navigator, test_name):
     keypair = Keypair.from_mnemonic_phrase(MNEMONIC, index=0)
     path = "m/44'/148'/0'"
     transaction = getattr(SignTxTestCases, test_name)()
@@ -114,4 +116,17 @@ def test_sign_tx_reject(backend, scenario_navigator):
 
     # Assert that we have received a refusal
     assert e.value.status == Errors.SW_DENY
+    assert len(e.value.data) == 0
+
+
+def test_sign_tx_data_too_large(backend):
+    path = "m/44'/148'/0'"
+    transaction = os.urandom(1024 * 10)  # 10 KB transaction
+    client = StellarCommandSender(backend)
+
+    with pytest.raises(ExceptionRAPDU) as e:
+        with client.sign_tx(path=path, transaction=transaction):
+            pass
+
+    assert e.value.status == Errors.SW_REQUEST_DATA_TOO_LARGE
     assert len(e.value.data) == 0

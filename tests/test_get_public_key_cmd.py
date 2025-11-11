@@ -64,3 +64,13 @@ def test_get_public_key_confirm_refused(backend, scenario_navigator):
     # Assert that we have received a refusal
     assert e.value.status == Errors.SW_DENY
     assert len(e.value.data) == 0
+
+
+def test_get_public_key_invalid_path_depth(backend):
+    client = StellarCommandSender(backend)
+    path = "m/44'/148'/0'/1"
+
+    with pytest.raises(ExceptionRAPDU) as e:
+        client.get_public_key(path=path)
+
+    assert e.value.status == Errors.SW_WRONG_APDU_LENGTH

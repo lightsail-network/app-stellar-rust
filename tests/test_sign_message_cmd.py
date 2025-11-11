@@ -52,3 +52,15 @@ def test_sign_message_reject(backend, scenario_navigator):
 
     assert e.value.status == Errors.SW_DENY
     assert len(e.value.data) == 0
+
+
+def test_sign_message_data_too_large(backend):
+    path = "m/44'/148'/0'"
+    client = StellarCommandSender(backend)
+    message = b"A" * 1024 * 10
+
+    with pytest.raises(ExceptionRAPDU) as e:
+        with client.sign_message(path=path, message=message):
+            pass
+
+    assert e.value.status == Errors.SW_REQUEST_DATA_TOO_LARGE

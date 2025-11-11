@@ -1,3 +1,5 @@
+import os
+
 import pytest
 from application_client.stellar_command_sender import Errors, StellarCommandSender
 from ragger.error import ExceptionRAPDU
@@ -16,7 +18,7 @@ from dataset import MNEMONIC, SignSorobanAuthorizationTestCases
 @pytest.mark.parametrize(
     "test_name", get_testcases_names(SignSorobanAuthorizationTestCases)
 )
-def test_sign_soroban_auth(backend, scenario_navigator, device, navigator, test_name):
+def test_sign_soroban_auth(backend, scenario_navigator, test_name):
     keypair = Keypair.from_mnemonic_phrase(MNEMONIC, index=0)
     path = "m/44'/148'/0'"
     preimage = getattr(SignSorobanAuthorizationTestCases, test_name)()
@@ -72,4 +74,17 @@ def test_sign_soroban_auth_reject(backend, scenario_navigator):
 
     # Assert that we have received a refusal
     assert e.value.status == Errors.SW_DENY
+    assert len(e.value.data) == 0
+
+
+def test_sign_soroban_auth_data_too_large(backend):
+    path = "m/44'/148'/0'"
+    preimage = os.urandom(1024 * 10)  # 10 KB preimage
+    client = StellarCommandSender(backend)
+
+    with pytest.raises(ExceptionRAPDU) as e:
+        with client.sign_soroban_auth(path=path, soroban_authorization=preimage):
+            pass
+
+    assert e.value.status == Errors.SW_REQUEST_DATA_TOO_LARGE
     assert len(e.value.data) == 0

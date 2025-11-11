@@ -38,6 +38,7 @@ class InsType(IntEnum):
 
 
 class Errors(IntEnum):
+    SW_CLA_NOT_SUPPORTED = 0x6E00
     SW_DENY = 0x6985
     SW_KEY_DERIVE_FAIL = 0xB001
     SW_ADDR_DISPLAY_FAIL = 0xB002
