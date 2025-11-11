@@ -1418,17 +1418,13 @@ class SignTxTestCases:
 
     @staticmethod
     def op_invoke_host_function_with_complex_sub_invocation() -> TransactionEnvelope:
-        kp0 = Keypair.from_secret(
-            "SAIYWGGWU2WMXYDSK33UBQBMBDKU4TTJVY3ZIFF24H2KQDR7RQW5KAEK"
-        )
-        source = Account(kp0.public_key, 1234567890)
         scvals = [
             scval.to_uint128(1),
             scval.to_int128(2),
             scval.to_uint256(3),
         ]
         tx = (
-            TransactionBuilder(source, Network.TESTNET_NETWORK_PASSPHRASE, 500)
+            common_builder(base_fee=500)
             .append_invoke_contract_function_op(
                 contract_id="CA3B55CUVQCP4C4WXGYG5I2ED7AYE6AFNJB25SFXXVWGEVP3LUVTN7ND",
                 function_name="rootfunc",
@@ -1971,17 +1967,13 @@ class SignTxTestCases:
 
     @staticmethod
     def op_invoke_host_function_with_auth() -> TransactionEnvelope:
-        kp0 = Keypair.from_secret(
-            "SAIYWGGWU2WMXYDSK33UBQBMBDKU4TTJVY3ZIFF24H2KQDR7RQW5KAEK"
-        )
-        source = Account(kp0.public_key, 1234567890)
         scvals = [
             scval.to_uint128(1),
             scval.to_int128(2),
             scval.to_uint256(3),
         ]
         tx = (
-            TransactionBuilder(source, Network.PUBLIC_NETWORK_PASSPHRASE, 500)
+            common_builder(base_fee=500)
             .append_invoke_contract_function_op(
                 contract_id="CA3B55CUVQCP4C4WXGYG5I2ED7AYE6AFNJB25SFXXVWGEVP3LUVTN7ND",
                 function_name="testfunc",
@@ -2103,12 +2095,8 @@ class SignTxTestCases:
     def op_invoke_host_function_with_auth_and_no_args_and_no_source() -> (
         TransactionEnvelope
     ):
-        kp0 = Keypair.from_secret(
-            "SAIYWGGWU2WMXYDSK33UBQBMBDKU4TTJVY3ZIFF24H2KQDR7RQW5KAEK"
-        )
-        source = Account(kp0.public_key, 1234567890)
         tx = (
-            TransactionBuilder(source, Network.PUBLIC_NETWORK_PASSPHRASE, 500)
+            common_builder(base_fee=500)
             .append_invoke_contract_function_op(
                 contract_id="CA3B55CUVQCP4C4WXGYG5I2ED7AYE6AFNJB25SFXXVWGEVP3LUVTN7ND",
                 function_name="testfunc",
@@ -2219,12 +2207,8 @@ class SignTxTestCases:
 
     @staticmethod
     def op_invoke_host_function_with_auth_and_no_args() -> TransactionEnvelope:
-        kp0 = Keypair.from_secret(
-            "SAIYWGGWU2WMXYDSK33UBQBMBDKU4TTJVY3ZIFF24H2KQDR7RQW5KAEK"
-        )
-        source = Account(kp0.public_key, 1234567890)
         tx = (
-            TransactionBuilder(source, Network.PUBLIC_NETWORK_PASSPHRASE, 500)
+            common_builder(base_fee=500)
             .append_invoke_contract_function_op(
                 contract_id="CA3B55CUVQCP4C4WXGYG5I2ED7AYE6AFNJB25SFXXVWGEVP3LUVTN7ND",
                 function_name="testfunc",
@@ -2336,10 +2320,8 @@ class SignTxTestCases:
 
     @staticmethod
     def op_invoke_host_function_without_auth_and_no_source() -> TransactionEnvelope:
-        source = Account(kp0.public_key, 1234567890)
-
         tx = (
-            TransactionBuilder(source, Network.PUBLIC_NETWORK_PASSPHRASE, 500)
+            common_builder(base_fee=500)
             .append_invoke_contract_function_op(
                 contract_id="CA3B55CUVQCP4C4WXGYG5I2ED7AYE6AFNJB25SFXXVWGEVP3LUVTN7ND",
                 function_name="testfunc",
