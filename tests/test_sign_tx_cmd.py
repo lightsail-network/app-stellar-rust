@@ -105,6 +105,29 @@ def test_sign_tx_with_tx_source_enabled(backend, scenario_navigator, device, nav
     assert response == expected_signature
 
 
+def test_sign_tx_with_nested_authorization_disabled(
+    backend, scenario_navigator, device, navigator
+):
+    keypair = Keypair.from_mnemonic_phrase(MNEMONIC, index=0)
+    path = "m/44'/148'/0'"
+    transaction = SignTxTestCases.op_invoke_host_function_with_complex_sub_invocation()
+    client = StellarCommandSender(backend)
+    signature_base = transaction.signature_base()
+    configure_device_settings(
+        navigator, device, SettingsId.DISABLE_NESTED_AUTHORIZATION
+    )
+
+    with client.sign_tx(path=path, transaction=signature_base):
+        scenario_navigator.review_approve(
+            ROOT_SCREENSHOT_PATH,
+            custom_screen_text="Sign ",
+        )
+    response = client.get_async_response().data
+
+    expected_signature = keypair.sign(sha256(transaction.signature_base()))
+    assert response == expected_signature
+
+
 def test_sign_tx_reject(backend, scenario_navigator):
     path = "m/44'/148'/0'"
     transaction = SignTxTestCases.op_payment_asset_native()

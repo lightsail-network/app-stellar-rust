@@ -27,7 +27,6 @@ def test_sign_soroban_auth(backend, scenario_navigator, test_name):
     with client.sign_soroban_auth(
         path=path, soroban_authorization=preimage.to_xdr_bytes()
     ):
-        # Validate the on-screen request by performing the navigation appropriate for this device
         scenario_navigator.review_approve(
             ROOT_SCREENSHOT_PATH,
             test_name=f"test_sign_soroban_auth_{test_name}",
@@ -50,7 +49,31 @@ def test_sign_soroban_auth_with_nonce_enabled(
     with client.sign_soroban_auth(
         path=path, soroban_authorization=preimage.to_xdr_bytes()
     ):
-        # Validate the on-screen request by performing the navigation appropriate for this device
+        scenario_navigator.review_approve(
+            ROOT_SCREENSHOT_PATH,
+            custom_screen_text="Sign ",
+        )
+    response = client.get_async_response().data
+
+    expected_signature = keypair.sign(sha256(preimage.to_xdr_bytes()))
+    assert response == expected_signature
+
+
+def test_sign_soroban_auth_with_nested_authorization_disabled(
+    backend, scenario_navigator, device, navigator
+):
+    keypair = Keypair.from_mnemonic_phrase(MNEMONIC, index=0)
+    path = "m/44'/148'/0'"
+    preimage = (
+        SignSorobanAuthorizationTestCases.soroban_auth_invoke_contract_with_complex_sub_invocation()
+    )
+    client = StellarCommandSender(backend)
+    configure_device_settings(
+        navigator, device, SettingsId.DISABLE_NESTED_AUTHORIZATION
+    )
+    with client.sign_soroban_auth(
+        path=path, soroban_authorization=preimage.to_xdr_bytes()
+    ):
         scenario_navigator.review_approve(
             ROOT_SCREENSHOT_PATH,
             custom_screen_text="Sign ",
