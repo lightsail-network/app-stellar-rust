@@ -48,7 +48,8 @@ mod extract_function_tests {
 
 #[cfg(test)]
 mod formatting_logic_tests {
-    use stellarlib::tokens::{format_token_amount, get_token_info};
+    use stellarlib::display::format_token_amount;
+    use stellarlib::tokens::get_token_info;
 
     #[test]
     fn test_usdc_token_formatting() {

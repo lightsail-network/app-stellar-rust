@@ -1,6 +1,6 @@
 use stellarlib::display::{
-    add_commas_to_integer, format_decimal, format_duration, format_number_with_commas,
-    format_unix_timestamp,
+    add_commas_to_integer, format_decimal, format_duration, format_native_amount,
+    format_number_with_commas, format_token_amount, format_unix_timestamp,
 };
 
 #[test]
@@ -147,4 +147,104 @@ fn test_format_duration() {
     assert_eq!(format_duration(120), "2m 0s");
     assert_eq!(format_duration(3600 * 2), "2h 0m 0s");
     assert_eq!(format_duration(86400 * 2), "2d 0h 0m 0s");
+}
+
+#[test]
+fn test_format_native_amount() {
+    // Test standard native XLM amounts (7 decimal places)
+    assert_eq!(format_native_amount(10_000_000u64), "1");
+    assert_eq!(format_native_amount(12_345_678u64), "1.2345678");
+    assert_eq!(format_native_amount(123_456_789u64), "12.3456789");
+    assert_eq!(format_native_amount(1_234_567_890u64), "123.456789");
+
+    // Test with commas in large numbers
+    assert_eq!(format_native_amount(10_000_000_000_000u64), "1,000,000");
+    assert_eq!(
+        format_native_amount(123_456_789_012_345u64),
+        "12,345,678.9012345"
+    );
+
+    // Test small amounts
+    assert_eq!(format_native_amount(1_000_000u64), "0.1");
+    assert_eq!(format_native_amount(100_000u64), "0.01");
+    assert_eq!(format_native_amount(10_000u64), "0.001");
+    assert_eq!(format_native_amount(1_000u64), "0.0001");
+    assert_eq!(format_native_amount(100u64), "0.00001");
+    assert_eq!(format_native_amount(10u64), "0.000001");
+    assert_eq!(format_native_amount(1u64), "0.0000001");
+
+    // Test zero
+    assert_eq!(format_native_amount(0u64), "0");
+
+    // Test negative amounts
+    assert_eq!(format_native_amount(-10_000_000i64), "-1");
+    assert_eq!(format_native_amount(-1_234_567i64), "-0.1234567");
+    assert_eq!(
+        format_native_amount(-123_456_789_000_000i64),
+        "-12,345,678.9"
+    );
+}
+
+#[test]
+fn test_format_token_amount_standard_decimals() {
+    // Standard 7 decimals (most Stellar tokens)
+    assert_eq!(format_token_amount(10_000_000u64, 7), "1");
+    assert_eq!(format_token_amount(1_000_000u64, 7), "0.1");
+    assert_eq!(format_token_amount(100_000u64, 7), "0.01");
+    assert_eq!(format_token_amount(10_000u64, 7), "0.001");
+    assert_eq!(format_token_amount(1_000u64, 7), "0.0001");
+    assert_eq!(format_token_amount(100u64, 7), "0.00001");
+    assert_eq!(format_token_amount(10u64, 7), "0.000001");
+    assert_eq!(format_token_amount(1u64, 7), "0.0000001");
+}
+
+#[test]
+fn test_format_token_amount_various_decimals() {
+    // 0 decimals
+    assert_eq!(format_token_amount(1000u64, 0), "1,000");
+
+    // 2 decimals (like traditional currencies)
+    assert_eq!(format_token_amount(100u64, 2), "1");
+    assert_eq!(format_token_amount(1234u64, 2), "12.34");
+
+    // 6 decimals
+    assert_eq!(format_token_amount(1_000_000u64, 6), "1");
+    assert_eq!(format_token_amount(123_456u64, 6), "0.123456");
+
+    // 18 decimals (Ethereum-style)
+    assert_eq!(format_token_amount(1_000_000_000_000_000_000u64, 18), "1");
+}
+
+#[test]
+fn test_format_token_amount_large_numbers() {
+    // Test with commas in large numbers
+    assert_eq!(format_token_amount(10_000_000_000_000u64, 7), "1,000,000");
+    assert_eq!(
+        format_token_amount(123_456_789_012_345u64, 7),
+        "12,345,678.9012345"
+    );
+}
+
+#[test]
+fn test_format_token_amount_negative() {
+    assert_eq!(format_token_amount(-10_000_000i64, 7), "-1");
+    assert_eq!(format_token_amount(-1_234_567i64, 7), "-0.1234567");
+    assert_eq!(
+        format_token_amount(-123_456_789_000_000i64, 7),
+        "-12,345,678.9"
+    );
+}
+
+#[test]
+fn test_format_token_amount_edge_cases() {
+    // Zero
+    assert_eq!(format_token_amount(0u64, 7), "0");
+    assert_eq!(format_token_amount(0u64, 0), "0");
+
+    // Maximum precision
+    assert_eq!(format_token_amount(12_345_678u64, 7), "1.2345678");
+
+    // Very small amounts
+    assert_eq!(format_token_amount(1u64, 7), "0.0000001");
+    assert_eq!(format_token_amount(9u64, 7), "0.0000009");
 }

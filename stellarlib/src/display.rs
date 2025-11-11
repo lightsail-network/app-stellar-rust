@@ -17,6 +17,9 @@ use alloc::vec::Vec;
 use core::fmt::Display;
 use ethnum::{I256, U256};
 
+/// Stellar uses 7 decimal places for precision (1 XLM = 10^7 stroops)
+pub const STELLAR_NATIVE_DECIMAL_PLACES: u32 = 7;
+
 // ============================================================================
 // Display implementations for numeric types
 // ============================================================================
@@ -541,4 +544,47 @@ pub fn format_duration(seconds: u64) -> alloc::string::String {
     }
 
     parts.join(" ")
+}
+
+/// Formats a Stellar amount (stroops) as a readable decimal string with comma separators
+///
+/// Stellar uses 7 decimal places (1 XLM = 10,000,000 stroops)
+///
+/// # Arguments
+/// * `stroops` - The amount in stroops
+///
+/// # Examples
+/// ```ignore
+/// assert_eq!(format_native_amount(10000000u64), "1");
+/// assert_eq!(format_native_amount(12345678u64), "1.2345678");
+/// assert_eq!(format_native_amount(1234567890u64), "123.456789");
+/// ```
+pub fn format_native_amount<T>(stroops: T) -> String
+where
+    T: ToString + Copy,
+{
+    format_token_amount(stroops, STELLAR_NATIVE_DECIMAL_PLACES)
+}
+
+/// Formats a token amount with specified decimal places as a readable decimal string with comma separators
+///
+/// # Arguments
+/// * `amount` - The token amount in smallest units (e.g., for USDC with 7 decimals, 10000000 represents 1 USDC)
+/// * `decimals` - Number of decimal places for the token
+///
+/// # Returns
+/// A formatted string with decimal places
+///
+/// # Examples
+/// ```ignore
+/// assert_eq!(format_token_amount(10000000u64, 7), "1");
+/// assert_eq!(format_token_amount(12345678u64, 7), "1.2345678");
+/// assert_eq!(format_token_amount(1234567890u64, 7), "123.456789");
+/// ```
+pub fn format_token_amount<T>(amount: T, decimals: u32) -> String
+where
+    T: ToString + Copy,
+{
+    let decimal_str = format_decimal(amount, decimals);
+    format_number_with_commas(&decimal_str)
 }

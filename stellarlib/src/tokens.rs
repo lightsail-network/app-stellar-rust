@@ -5,8 +5,6 @@
 
 extern crate alloc;
 
-use alloc::string::String;
-
 /// Represents metadata for a known token contract
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct TokenInfo {
@@ -568,30 +566,4 @@ pub fn get_token_info(contract_address: &[u8; 32]) -> Option<&'static TokenInfo>
     KNOWN_TOKENS
         .iter()
         .find(|token| &token.contract_address == contract_address)
-}
-
-/// Formats a token amount with the appropriate number of decimals
-///
-/// # Arguments
-/// * `amount` - The raw amount as an i128
-/// * `decimals` - Number of decimal places
-///
-/// # Returns
-/// A formatted string with decimal places
-///
-/// # Examples
-/// ```ignore
-/// use stellarlib::tokens::format_token_amount;
-///
-/// // Format 1000000 with 7 decimals (standard for most Stellar tokens)
-/// assert_eq!(format_token_amount(1000000, 7), "0.1");
-///
-/// // Format 10000000 with 7 decimals
-/// assert_eq!(format_token_amount(10000000, 7), "1");
-/// ```
-pub fn format_token_amount(amount: i128, decimals: u32) -> String {
-    use crate::display::{format_decimal, format_number_with_commas};
-
-    let decimal_str = format_decimal(amount, decimals);
-    format_number_with_commas(&decimal_str)
 }

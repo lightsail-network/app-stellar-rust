@@ -6,7 +6,8 @@
 extern crate alloc;
 
 use crate::display::{
-    format_decimal, format_number_with_commas, format_pool_id, format_unix_timestamp,
+    format_decimal, format_native_amount, format_number_with_commas, format_pool_id,
+    format_unix_timestamp, STELLAR_NATIVE_DECIMAL_PLACES,
 };
 use crate::parser::*;
 use crate::serialize::scval_to_key_string;
@@ -14,9 +15,6 @@ use alloc::format;
 use alloc::string::{String, ToString};
 use alloc::vec;
 use alloc::vec::Vec;
-
-/// Stellar uses 7 decimal places for precision (1 XLM = 10^7 stroops)
-const STELLAR_DECIMAL_PLACES: u32 = 7;
 
 /// Number of stroops per XLM (10^7)
 const STROOPS_PER_XLM: u64 = 10_000_000;
@@ -177,27 +175,6 @@ pub fn format_hash_id_preimage_soroban_authorization(
     entries
 }
 
-/// Formats a Stellar amount (stroops) as a readable decimal string with comma separators
-///
-/// Stellar uses 7 decimal places (1 XLM = 10,000,000 stroops)
-///
-/// # Arguments
-/// * `stroops` - The amount in stroops
-///
-/// # Examples
-/// ```ignore
-/// assert_eq!(format_native_amount(10000000u64), "1");
-/// assert_eq!(format_native_amount(12345678u64), "1.2345678");
-/// assert_eq!(format_native_amount(1234567890u64), "123.456789");
-/// ```
-fn format_native_amount<T>(stroops: T) -> String
-where
-    T: ToString + Copy,
-{
-    let decimal_str = format_decimal(stroops, STELLAR_DECIMAL_PLACES);
-    format_number_with_commas(&decimal_str)
-}
-
 /// Formats a price as a decimal string with 7 decimal places and comma separators
 ///
 /// # Arguments
@@ -239,7 +216,7 @@ fn format_price(price: &Price) -> Result<String, FormatError> {
 
     let result = scaled_numerator / denominator_u64;
 
-    let decimal_str = format_decimal(result, STELLAR_DECIMAL_PLACES);
+    let decimal_str = format_decimal(result, STELLAR_NATIVE_DECIMAL_PLACES);
     let formatted = format_number_with_commas(&decimal_str);
 
     Ok(formatted)

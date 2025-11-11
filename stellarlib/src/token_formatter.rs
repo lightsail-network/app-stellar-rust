@@ -5,11 +5,11 @@
 
 extern crate alloc;
 
-use crate::display::format_number_with_commas;
+use crate::display::{format_number_with_commas, format_token_amount};
 use crate::formatter::DataEntry;
 use crate::parser::{InvokeContractArgs, ScAddress, ScVal, Uint256};
 use crate::serialize::scval_to_key_string;
-use crate::tokens::{format_token_amount, get_token_info, TokenInfo};
+use crate::tokens::{get_token_info, TokenInfo};
 use alloc::format;
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;

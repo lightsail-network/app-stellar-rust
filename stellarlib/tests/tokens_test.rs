@@ -1,4 +1,4 @@
-use stellarlib::tokens::{format_token_amount, get_token_info, KNOWN_TOKENS};
+use stellarlib::tokens::{get_token_info, KNOWN_TOKENS};
 
 #[test]
 fn test_get_token_info_known_tokens() {
@@ -35,70 +35,6 @@ fn test_get_token_info_unknown_token() {
 
     let random_address = [0xFF; 32];
     assert!(get_token_info(&random_address).is_none());
-}
-
-#[test]
-fn test_format_token_amount_standard_decimals() {
-    // Standard 7 decimals (most Stellar tokens)
-    assert_eq!(format_token_amount(10_000_000, 7), "1");
-    assert_eq!(format_token_amount(1_000_000, 7), "0.1");
-    assert_eq!(format_token_amount(100_000, 7), "0.01");
-    assert_eq!(format_token_amount(10_000, 7), "0.001");
-    assert_eq!(format_token_amount(1_000, 7), "0.0001");
-    assert_eq!(format_token_amount(100, 7), "0.00001");
-    assert_eq!(format_token_amount(10, 7), "0.000001");
-    assert_eq!(format_token_amount(1, 7), "0.0000001");
-}
-
-#[test]
-fn test_format_token_amount_various_decimals() {
-    // 0 decimals
-    assert_eq!(format_token_amount(1000, 0), "1,000");
-
-    // 2 decimals (like traditional currencies)
-    assert_eq!(format_token_amount(100, 2), "1");
-    assert_eq!(format_token_amount(1234, 2), "12.34");
-
-    // 6 decimals
-    assert_eq!(format_token_amount(1_000_000, 6), "1");
-    assert_eq!(format_token_amount(123_456, 6), "0.123456");
-
-    // 18 decimals (Ethereum-style)
-    assert_eq!(format_token_amount(1_000_000_000_000_000_000, 18), "1");
-}
-
-#[test]
-fn test_format_token_amount_large_numbers() {
-    // Test with commas in large numbers
-    assert_eq!(format_token_amount(10_000_000_000_000, 7), "1,000,000");
-    assert_eq!(
-        format_token_amount(123_456_789_012_345, 7),
-        "12,345,678.9012345"
-    );
-}
-
-#[test]
-fn test_format_token_amount_negative() {
-    assert_eq!(format_token_amount(-10_000_000, 7), "-1");
-    assert_eq!(format_token_amount(-1_234_567, 7), "-0.1234567");
-    assert_eq!(
-        format_token_amount(-123_456_789_000_000, 7),
-        "-12,345,678.9"
-    );
-}
-
-#[test]
-fn test_format_token_amount_edge_cases() {
-    // Zero
-    assert_eq!(format_token_amount(0, 7), "0");
-    assert_eq!(format_token_amount(0, 0), "0");
-
-    // Maximum precision
-    assert_eq!(format_token_amount(12_345_678, 7), "1.2345678");
-
-    // Very small amounts
-    assert_eq!(format_token_amount(1, 7), "0.0000001");
-    assert_eq!(format_token_amount(9, 7), "0.0000009");
 }
 
 #[test]

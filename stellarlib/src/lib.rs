@@ -19,4 +19,4 @@ pub use formatter::{
 };
 pub use parser::*;
 pub use token_formatter::try_format_token_contract_call;
-pub use tokens::{format_token_amount, get_token_info, TokenInfo, KNOWN_TOKENS};
+pub use tokens::{get_token_info, TokenInfo, KNOWN_TOKENS};
