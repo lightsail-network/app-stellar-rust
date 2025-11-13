@@ -54,6 +54,7 @@ pub fn ui_sign_tx(raw_data: &[u8], signer: &[u8]) -> Result<bool, AppSW> {
     };
 
     let mut intent: Option<String> = None;
+    let mut is_soroban_tx = false;
 
     for i in 0..op_count {
         if op_count > 1 {
@@ -66,6 +67,10 @@ pub fn ui_sign_tx(raw_data: &[u8], signer: &[u8]) -> Result<bool, AppSW> {
         let mut op_entries =
             format_operation(&op, &config, &tx_source).map_err(|_| AppSW::DataFormattingFail)?;
         data_entries.append(&mut op_entries);
+
+        if matches!(&op.body, stellarlib::OperationBody::InvokeHostFunction(_)) {
+            is_soroban_tx = true;
+        }
 
         if op_count == 1 {
             intent = get_operation_intent(&op, &tx_source);
@@ -89,9 +94,13 @@ pub fn ui_sign_tx(raw_data: &[u8], signer: &[u8]) -> Result<bool, AppSW> {
         ),
     };
 
-    let review = NbglReview::new()
+    let mut review = NbglReview::new()
         .titles(&title, "", &finish_title)
         .glyph(&icons::STELLAR);
+
+    if is_soroban_tx {
+        review = review.blind();
+    }
 
     let fields: Vec<Field> = data_entries
         .iter()

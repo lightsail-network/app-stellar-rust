@@ -43,7 +43,8 @@ pub fn ui_sign_soroban_auth(raw_data: &[u8]) -> Result<bool, AppSW> {
             "",
             "Sign Soroban Authorization?",
         )
-        .glyph(&icons::STELLAR);
+        .glyph(&icons::STELLAR)
+        .blind();
     let result = review.show(&fields);
 
     Ok(result)
