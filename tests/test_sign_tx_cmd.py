@@ -130,6 +130,7 @@ def test_sign_tx_with_nested_authorization_disabled(
     )
 
     with client.sign_tx(path=path, transaction=signature_base):
+        handle_risk_warning(navigator, device)
         scenario_navigator.review_approve(
             ROOT_SCREENSHOT_PATH,
             custom_screen_text="Sign ",
