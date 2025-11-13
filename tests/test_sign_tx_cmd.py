@@ -126,7 +126,9 @@ def test_sign_tx_with_nested_authorization_disabled(
     client = StellarCommandSender(backend)
     signature_base = transaction.signature_base()
     configure_device_settings(
-        navigator, device, SettingsId.DISABLE_NESTED_AUTHORIZATION
+        navigator,
+        device,
+        SettingsId.DISABLE_NESTED_AUTHORIZATION | SettingsId.ENABLE_BLIND_SIGNING,
     )
 
     with client.sign_tx(path=path, transaction=signature_base):
