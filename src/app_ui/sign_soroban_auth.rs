@@ -23,6 +23,11 @@ use ledger_device_sdk::nbgl::{Field, NbglReview};
 use stellarlib::{format_hash_id_preimage_soroban_authorization, HashIDPreimage, Parser, XdrParse};
 
 pub fn ui_sign_soroban_auth(raw_data: &[u8]) -> Result<bool, AppSW> {
+    let settings = Settings;
+    if !settings.is_blind_signing_enabled() {
+        return Err(AppSW::BlindSigningModeNotEnabled);
+    }
+
     let mut parser = Parser::new(raw_data);
     let preimage = HashIDPreimage::parse(&mut parser).map_err(|_| AppSW::DataParsingFail)?;
     let HashIDPreimage::SorobanAuthorization(auth) = preimage;

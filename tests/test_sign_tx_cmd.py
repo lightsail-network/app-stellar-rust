@@ -10,23 +10,35 @@ from utils import (
     SettingsId,
     configure_device_settings,
     get_testcases_names,
+    handle_risk_warning,
 )
 
 from dataset import MNEMONIC, SignTxTestCases
 
 
 @pytest.mark.parametrize("test_name", get_testcases_names(SignTxTestCases))
-def test_sign_tx(backend, scenario_navigator, test_name):
+def test_sign_tx(backend, scenario_navigator, navigator, device, test_name):
     keypair = Keypair.from_mnemonic_phrase(MNEMONIC, index=0)
     path = "m/44'/148'/0'"
     transaction = getattr(SignTxTestCases, test_name)()
     client = StellarCommandSender(backend)
     signature_base = transaction.signature_base()
 
+    if "op_invoke_host_function" in test_name:
+        # For host function transactions, enable blind signing
+        configure_device_settings(
+            navigator,
+            device,
+            SettingsId.ENABLE_BLIND_SIGNING,
+        )
+
     # Send the sign device instruction.
     # As it requires on-screen validation, the function is asynchronous.
     # It will yield the result when the navigation is done
     with client.sign_tx(path=path, transaction=signature_base):
+        if "op_invoke_host_function" in test_name:
+            # For host function transactions, handle the risk warning
+            handle_risk_warning(navigator, device)
         # Validate the on-screen request by performing the navigation appropriate for this device
         scenario_navigator.review_approve(
             ROOT_SCREENSHOT_PATH,

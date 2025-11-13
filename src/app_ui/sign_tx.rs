@@ -99,6 +99,10 @@ pub fn ui_sign_tx(raw_data: &[u8], signer: &[u8]) -> Result<bool, AppSW> {
         .glyph(&icons::STELLAR);
 
     if is_soroban_tx {
+        let settings = Settings;
+        if !settings.is_blind_signing_enabled() {
+            return Err(AppSW::BlindSigningModeNotEnabled);
+        }
         review = review.blind();
     }
 
