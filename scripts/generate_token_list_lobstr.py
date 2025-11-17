@@ -41,7 +41,9 @@ def print_asset(asset):
 
 
 print(f"// Token list version: {version}, generated from {LOBSTR_TOKEN_API_URL}")
-for token in tokens:
+# Sort tokens by asset code
+sorted_tokens = sorted(tokens, key=lambda x: x["code"])
+for token in sorted_tokens:
     asset = Asset(code=token["code"], issuer=token["issuer"])
     if bytes.fromhex(token["contract"]) != get_asset_contract_id(
         asset, Network.PUBLIC_NETWORK_PASSPHRASE

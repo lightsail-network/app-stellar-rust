@@ -1,6 +1,6 @@
 //! Utility functions for Stellar swap operations
 //!
-//! This module provides safe, no_std compatible utilities for:
+//! This module provides safe, no_std and no-alloc compatible utilities for:
 //! - Formatting Stellar addresses from Ed25519 public keys
 //! - Converting XLM amounts from stroops to human-readable format
 
