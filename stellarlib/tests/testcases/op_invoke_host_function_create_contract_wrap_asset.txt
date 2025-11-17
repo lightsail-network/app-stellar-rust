@@ -2,4 +2,4 @@ Network; Testnet
 Max Fee; 0.0418694 XLM
 Sequence Num; 12842214208045059
 Tx Source; GDUTHCF37UX32EMANXIL2WOOVEDZ47GHBTT3DYKU6EKM37SOIZXM2FN7
-Create Contract; Create smart contract for Stellar classic asset
+Create Contract; Deploy Stellar asset contract

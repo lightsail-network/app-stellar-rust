@@ -1250,7 +1250,7 @@ fn format_create_contract_args(args: &CreateContractArgs) -> Vec<DataEntry> {
             entries.push(DataEntry::new(
                 "Create Contract",
                 format!(
-                    "Create smart contract with wasm: {}",
+                    "Deploy contract from WASM hash: {}",
                     hex::encode(wasm.as_bytes())
                 ),
             ));
@@ -1258,7 +1258,7 @@ fn format_create_contract_args(args: &CreateContractArgs) -> Vec<DataEntry> {
         ContractExecutable::StellarAsset => {
             entries.push(DataEntry::new(
                 "Create Contract",
-                "Create smart contract for Stellar classic asset".to_string(),
+                "Deploy Stellar asset contract".to_string(),
             ));
         }
     }
@@ -1272,7 +1272,7 @@ fn format_create_contract_args_v2(args: &CreateContractArgsV2) -> Vec<DataEntry>
             entries.push(DataEntry::new(
                 "Create Contract",
                 format!(
-                    "Create smart contract with wasm: {}",
+                    "Deploy contract from WASM hash: {}",
                     hex::encode(wasm.as_bytes())
                 ),
             ));
@@ -1280,7 +1280,7 @@ fn format_create_contract_args_v2(args: &CreateContractArgsV2) -> Vec<DataEntry>
         ContractExecutable::StellarAsset => {
             entries.push(DataEntry::new(
                 "Create Contract",
-                "Create smart contract for Stellar classic asset".to_string(),
+                "Deploy Stellar asset contract".to_string(),
             ));
         }
     }
@@ -1383,8 +1383,8 @@ fn format_invoke_host_function_op(
         }
         HostFunction::UploadContractWasm(_) => {
             entries.push(DataEntry::new(
-                "Upload Wasm",
-                "Upload Smart Contract Wasm".to_string(),
+                "Upload WASM",
+                "Upload Smart Contract WASM".to_string(),
             ));
         }
         HostFunction::CreateContractV2(args) => {
